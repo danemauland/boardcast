@@ -1,0 +1,131 @@
+org: danemauland
+app: video
+service: video-backend
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  region: us-east-1
+  logRetentionInDays: 30
+  logs:
+    websocket: true
+  environment:
+    STAGE: ${sls:stage}
+    REGION: ${self:provider.region}
+    SERVICE_NAME: ${self:service}
+    DDB_TABLE: ${cf:${self:custom.infraStack}.DDBTableMeeting}
+    # PARAM_VAR: ${param:VAR}
+    API_GW_DOMAIN: !Ref WebsocketsApi
+
+custom:
+  appName: video
+  infraStack: ${self:custom.appName}-infra-${sls:stage}
+  awsAccountId: ${cf:${self:custom.infraStack}.AWSAccountId}
+  esbuild:
+    bundle: true
+    target: es2018
+    exclude: []
+  export-env:
+    overwrite: true
+
+package:
+  individually: true
+  patterns:
+    - '!node_modules/**'
+
+functions:
+  # =============================================================
+  # WebSocket Handlers
+  # =============================================================
+
+  WSConnect:
+    handler: src/handlers/connect.handler
+    events:
+      - websocket: $connect
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamoDB:PutItem
+      Resource:
+        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
+    
+  WSDisconnect:
+    handler: src/handlers/disconnect.handler
+    events:
+      - websocket: $disconnect
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamoDB:DeleteItem
+      Resource:
+        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
+    - Effect: Allow
+      Action:
+        - dynamoDB:Query
+      Resource:
+        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}/index/gsi_1
+
+  WSSaveMessage:
+    handler: src/handlers/saveMessage.handler
+    events:
+      - websocket:
+          route: sendMessage
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamoDB:PutItem
+      Resource:
+        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
+    - Effect: Allow
+      Action:
+        - dynamoDB:Query
+      Resource:
+        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}/index/gsi_1
+
+  WSBroadcastMessage:
+    handler: src/handlers/broadcastMessage.handler
+    events:
+      - stream:
+          type: dynamodb
+          arn: ${cf:${self:custom.infraStack}.DDBTableMeetingStreamArn}
+          bisectBatchOnFunctionError: true
+          maximumRetryAttempts: 3
+          batchSize: 1
+          destinations:
+            onFailure: ${cf:${self:custom.infraStack}.DDBTableMeetingStreamDLQArn}
+          filterPatterns:
+            - eventName:
+                - INSERT
+              dynamodb:
+                NewImage:
+                  type:
+                    S: [message]
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamoDB:Query
+      Resource:
+        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
+    - Effect: Allow
+      Action:
+        - sqs:SendMessage
+      Resource:
+        - ${cf:${self:custom.infraStack}.DDBTableMeetingStreamDLQArn}
+    - Effect: Allow
+      Action:
+        - execute-api:ManageConnections
+      Resource:
+        - !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${WebsocketsApi}/${sls:stage}/POST/@connections/*
+
+resources:
+  Outputs:
+    APIGWWebsocketApi:
+      Value:
+        Ref: WebsocketsApi
+
+plugins:
+- serverless-esbuild
+- serverless-export-env
+- serverless-iam-roles-per-function

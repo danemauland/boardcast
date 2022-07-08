@@ -1,0 +1,9 @@
+.build
+.env
+.serverless
+.webpack
+*.log
+**/coverage
+dist
+node_modules
+tmp

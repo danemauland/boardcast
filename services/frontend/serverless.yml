@@ -1,0 +1,222 @@
+org: danemauland
+app: video
+service: video-frontend
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  region: us-east-1
+  logRetentionInDays: 30
+  logs:
+    httpApi: true
+  environment:
+    STAGE: ${sls:stage}
+    REGION: ${self:provider.region}
+    SERVICE_NAME: ${self:service}
+    # API_GW_DOMAIN: !Ref ApiGatewayRestApi
+    API_GW_URL:
+      Fn::Join:
+          - ""
+          - - https://
+            - Ref: ApiGatewayRestApi
+            - .execute-api.
+            - Ref: AWS::Region
+            - .amazonaws.com/
+            - ${sls:stage}
+    WEBSOCKET_DOMAIN: ${cf:${self:custom.backendStack}.APIGWWebsocketApi}
+    APP_DIST_URL: ${self:custom.distBucketUrl}
+    DDB_TABLE: ${cf:${self:custom.infraStack}.DDBTableMeeting}
+    USER_POOL_ID: !Ref UserPool
+    CLIENT_ID: !Ref UserPoolClient
+    DOMAIN_SUFFIX: ${self:org}-${self:service}-${sls:stage}
+
+custom:
+  appName: video
+  backendStack: ${self:custom.appName}-backend-${sls:stage}
+  infraStack: ${self:custom.appName}-infra-${sls:stage}
+  awsAccountId: ${cf:${self:custom.infraStack}.AWSAccountId}
+  distBucketUrl:
+    Fn::Join:
+        - ""
+        - - https://
+          - Ref: DistBucket
+          - .s3.amazonaws.com
+  esbuild:
+    bundle: true
+    target: es2018
+    exclude: []
+  export-env:
+    overwrite: true
+  scripts:
+    hooks:
+      package:initialize: "npm run build:browser"
+  s3Sync:
+    - bucketNameKey: DistBucket
+      localDir: dist
+      acl: public-read
+      params:
+        - "*.js":
+            # CacheControl: 'public, max-age=31104000' # 1 year
+            CacheControl: 'no-cache'
+
+
+
+package:
+  individually: true
+  patterns:
+    - '!node_modules/**'
+
+functions:
+  # =============================================================
+  # API Gateway handlers
+  # =============================================================
+
+  APIGWServe:
+    handler: src/handlers/serve.handler
+    events:
+      - http:
+          path: /
+          method: get
+          cors: true
+      - http:
+          path: /{any+}
+          method: get
+          cors: true
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamoDB:UpdateItem
+      Resource:
+        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
+
+  APIGWGetMeetingMessages:
+    handler: src/handlers/getMeetingMessages.handler
+    events:
+      - http:
+          path: /meeting/{meetingID}/messages
+          method: get
+          cors: true
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamoDB:Query
+      Resource:
+        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
+
+  APIGWGetUserMeetings:
+    handler: src/handlers/getUserMeetings.handler
+    events:
+      - http:
+          path: /usermeetings/{email}
+          method: get
+          cors: true
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamoDB:Query
+      Resource:
+        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
+
+  # APIGWAddUsername:
+  #   handler: src/handlers/addUsername.handler
+  #   events:
+  #     - http:
+  #         path: /user/{userID}
+  #         method: post
+  #         cors: true
+  #   iamRoleStatements:
+  #   - Effect: Allow
+  #     Action:
+  #       - dynamoDB:UpdateItem
+  #     Resource:
+  #       - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
+
+  APIGWAddUserMeeting:
+    handler: src/handlers/addUserMeeting.handler
+    events:
+      - http:
+          path: /usermeeting/{email}
+          method: post
+          cors: true
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamoDB:PutItem
+      Resource:
+        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
+
+resources:
+  Resources:
+    ApiGatewayRestApi:
+      Type: AWS::ApiGateway::RestApi
+      DependsOn: UserPool
+      Properties:
+        MinimumCompressionSize: 1000
+
+    DistBucket:
+      Type: AWS::S3::Bucket
+      DeletionPolicy: Delete
+      Properties:
+        CorsConfiguration:
+          CorsRules:
+            - AllowedHeaders:
+                - "*"
+              AllowedMethods:
+                - "GET"
+              AllowedOrigins:
+                - Fn::Join:
+                    - ""
+                    - - https://
+                      - Ref: ApiGatewayRestApi
+                      - .execute-api.
+                      - Ref: AWS::Region
+                      - .amazonaws.com
+
+    UserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: meeting-user-pool-${sls:stage}
+        UsernameAttributes:
+          - email
+        AutoVerifiedAttributes:
+          - email
+        # AliasAttributes: 
+        #   - email
+
+    UserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: service-user-pool-client-${sls:stage}
+        UserPoolId:
+          Ref: UserPool
+        ExplicitAuthFlows:
+          - ALLOW_USER_SRP_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
+        GenerateSecret: false
+        SupportedIdentityProviders:
+          - COGNITO
+
+    UserPoolDomain:
+      Type: AWS::Cognito::UserPoolDomain 
+      Properties:
+        UserPoolId: 
+          Ref: UserPool
+        Domain: service-user-pool-domain-${self:provider.environment.DOMAIN_SUFFIX}
+  
+  Outputs:
+    ApiGatewayRestApi:
+      Description: API Gateway Endpoint
+      Value:
+        Ref: ApiGatewayRestApi
+    DistBucket:
+      Description: Distribution S3 Bucket
+      Value:
+        Ref: DistBucket
+plugins:
+- serverless-esbuild
+- serverless-export-env
+- serverless-plugin-scripts
+- serverless-s3-sync
+- serverless-iam-roles-per-function

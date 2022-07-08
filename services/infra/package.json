@@ -1,0 +1,28 @@
+{
+  "name": "infra",
+  "version": "0.0.0",
+  "description": "Holds the code that rarely changes, e.g. DDB tables",
+  "main": "index.js",
+  "scripts": {
+    "dotenv": "sls export-env -s $SERVERLESS_STAGE",
+    "lint": "eslint . --ext .ts,.tsx",
+    "test-all": "npm run test-unit && npm run test-integration && npm run test-e2e",
+    "test-e2e": "TEST_MODE=REMOTE_TRIGGER jest -c jest.config.e2e.js -t '^(?!.*(\\[integration\\])).*$'",
+    "test-integration": "TEST_MODE=LOCAL_HANDLER jest -c jest.config.integration.js -t '^(?!.*(\\[e2e\\])).*$'",
+    "test-unit": "jest -c jest.config.unit.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "Dane Mauland",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://placeholder.com"
+  },
+  "homepage": "",
+  "devDependencies": {
+    "serverless": "^3.18.1",
+    "serverless-esbuild": "^1.31.0"
+  }
+}

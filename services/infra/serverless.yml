@@ -1,0 +1,41 @@
+org: danemauland
+app: video
+service: video-infra
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  region: us-east-1
+  logRetentionInDays: 30
+  logs:
+    httpApi: true
+  stackPolicy:
+  - Effect: Allow
+    Principal: '*'
+    Action: 'Update:*'
+    Resource: '*'
+  # Prevent CloudFormation from replacing/deleting DDB tables
+  - Effect: Deny
+    Principal: '*'
+    Resource: '*'
+    Condition:
+      StringEquals:
+        ResourceType:
+          - AWS::DynamoDB::Table
+    Action:
+      - Update:Replace
+
+custom:
+  dynamoDbTablePrefix: ${self:service}-${sls:stage}
+  s3BucketPrefix: ${self:service}-${sls:stage}
+  deletionPolicy:
+    personal: Delete
+    dev: Delete
+    prod: Retain
+
+resources:
+  - ${file(resources/ddbTables.yml)}
+  - Outputs:
+      AWSAccountId:
+        Value: !Ref 'AWS::AccountId'

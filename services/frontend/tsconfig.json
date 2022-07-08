@@ -1,0 +1,24 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react",
+    "experimentalDecorators": true,
+    "baseUrl": "./",
+    "paths": {
+      "@svc/*": [
+        "./src/*"
+      ],
+      "@tests/*": [
+        "./tests/*"
+      ]
+    },
+    "outDir": "./dist"
+  },
+  "include": [
+    "src/**/*.ts",
+    "tests/**/*.ts", "src/lib/App.tsx", "src/server/render.tsx"
+  ],
+  "exclude": [
+    "./dist"
+  ]
+}

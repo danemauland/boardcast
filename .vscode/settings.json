@@ -1,0 +1,11 @@
+{
+    "terminal.integrated.env.osx": {
+        "AWS_PROFILE": "personal"
+    },
+    "terminal.integrated.env.windows": {
+        "AWS_PROFILE": "personal"
+    },
+    "terminal.integrated.env.linux": {
+        "AWS_PROFILE": "personal"
+    }
+}

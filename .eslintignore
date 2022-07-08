@@ -1,0 +1,9 @@
+.build
+.serverless
+**/*.env
+**/*.json
+**/*.md
+**/*.sh
+**/*.yml
+dist
+node_modules

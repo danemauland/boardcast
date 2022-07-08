@@ -1,0 +1,42 @@
+{
+  "name": "placeholder",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint . --ext .ts,.tsx",
+    "infra:deploy": "cd ./services/infra && cross-env STAGE=${STAGE:=dev} sls deploy -s $STAGE",
+    "frontend:test-unit": "cd ./services/frontend && npm run test-unit",
+    "frontend:test-integration": "cd ./services/frontend && npm run test-integration",
+    "frontend:deploy": "cd ./services/frontend && cross-env STAGE=${STAGE:=dev} sls deploy -s $STAGE",
+    "frontend:dotenv": "cd ./services/frontend && cross-env STAGE=${STAGE:=dev} sls export-env -s $STAGE",
+    "video:deploy": "cd ./services/video && cross-env STAGE=${STAGE:=dev} sls deploy -s $STAGE",
+    "video:dotenv": "cd ./services/video && cross-env STAGE=${STAGE:=dev} sls export-env -s $STAGE",
+    "video:tsc": "cd ./services/video && tsc -w",
+    "video:test-e2e": "cd ./services/video && npm run test-e2e",
+    "video:test-unit": "cd ./services/video && npm run test-unit",
+    "video:test-integration": "cd ./services/video && npm run test-integration",
+    "video:test-all": "cd ./services/video && npm run test-all"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "Dane Mauland",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://placeholder.com"
+  },
+  "homepage": "",
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.0.0",
+    "jest": "^27.5.1",
+    "ts-jest": "^27.1.4",
+    "ts-loader": "^9.3.0"
+  },
+  "dependencies": {
+    "serverless-plugin-scripts": "^1.0.2",
+    "serverless-s3-sync": "^3.0.0"
+  }
+}
