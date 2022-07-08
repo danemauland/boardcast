@@ -11,13 +11,6 @@ import Login from "./components/Login"
 export default function App() {
   const [user, setUser] = useState<null | CognitoUser>(null)
   const config = useConfig()
-
-  const poolData: ICognitoUserPoolData = {
-    UserPoolId: config.app.USER_POOL_ID!,
-    ClientId: config.app.CLIENT_ID!
-  };
-
-  const userPool = new CognitoUserPool(poolData)
   
   return <React.StrictMode>
     <Routes>

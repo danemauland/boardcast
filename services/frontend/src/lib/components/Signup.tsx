@@ -1,9 +1,10 @@
 import React, { useState } from "react"
 import useConfig from "./useConfig"
 import { useNavigate } from "react-router-dom"
-import { CognitoUserPool, CognitoUserAttribute } from "amazon-cognito-identity-js"
+import { CognitoUserAttribute } from "amazon-cognito-identity-js"
+import UserPool from "./UserPool"
 
-export default function Signup({setUser, userPool}: {setUser: Function, userPool: CognitoUserPool}) {
+export default function Signup({setUser}: {setUser: Function}) {
   const navigate = useNavigate()
   const config = useConfig()
   const [email, setEmail] = useState('')
@@ -13,7 +14,7 @@ export default function Signup({setUser, userPool}: {setUser: Function, userPool
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const emailAttribute = new CognitoUserAttribute({Name: "email", Value: email})
-    userPool.signUp(email, password, [emailAttribute], [emailAttribute], (err, data) => {
+    UserPool.signUp(email, password, [emailAttribute], [emailAttribute], (err, data) => {
       if(err) {
         setError(err.message)
       } else {

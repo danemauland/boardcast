@@ -1,9 +1,11 @@
-import React, { useState } from "react"
+import React, { useContext, useState } from "react"
 import useConfig from "./useConfig"
 import { useNavigate } from "react-router-dom"
-import { CognitoUserPool, CognitoUserAttribute, AuthenticationDetails, CognitoUser } from "amazon-cognito-identity-js"
+import { AccountContext } from "./Account"
 
-export default function Login({setUser, userPool}: {setUser: Function, userPool: CognitoUserPool}) {
+
+
+export default function Login({setUser}: {setUser: Function}) {
   const navigate = useNavigate()
   const config = useConfig()
   const [email, setEmail] = useState('')
@@ -12,25 +14,8 @@ export default function Login({setUser, userPool}: {setUser: Function, userPool:
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const authenticationData = {
-      Username: email,
-      Password: password,
-    }
-
-    const authenticationDetails = new AuthenticationDetails(authenticationData)
-
-    const userData = {
-      Username: email,
-      Pool: userPool
-    }
-
-    const user = new CognitoUser(userData)
-
-    user.authenticateUser(authenticationDetails, {
-      onSuccess: function (result) {
-        setUser(user)
-      },
-
+    const { authenticate } = useContext(AccountContext)
+    
       onFailure: function (err) {
         if (err.name === "UserNotConfirmedException") {
           navigate(`/${config.app.STAGE}/verify`)
@@ -38,8 +23,7 @@ export default function Login({setUser, userPool}: {setUser: Function, userPool:
           setError(err.message)
         }
       },
-    });
-  }
+    
   
   return <form onSubmit={onSubmit}>
     <input type="text" value={email} onChange={e => setEmail(e.target.value)} />

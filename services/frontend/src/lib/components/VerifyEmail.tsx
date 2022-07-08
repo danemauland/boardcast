@@ -2,8 +2,9 @@ import React, {useState} from "react"
 import { CognitoUser, CognitoUserPool } from "amazon-cognito-identity-js"
 import { useNavigate } from "react-router-dom"
 import useConfig from "./useConfig"
+import UserPool from "./UserPool"
 
-export default function VerifyEmail({user, userPool}: {user: CognitoUser | null, userPool: CognitoUserPool}) {
+export default function VerifyEmail({user}: {user: CognitoUser | null}) {
   const [token, setToken] = useState('')
   const [error, setError] = useState('')
   const config = useConfig()
@@ -17,7 +18,7 @@ export default function VerifyEmail({user, userPool}: {user: CognitoUser | null,
     e.preventDefault()
     const user = new CognitoUser({
       Username: email!,
-      Pool: userPool
+      Pool: UserPool
     })
 
     user.confirmRegistration(token, false, (err, result) => {

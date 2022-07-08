@@ -14,9 +14,9 @@ export const handler = async (event: APIGatewayEvent, _context: Context): Promis
     if (!email) throw new Error("missing email");
     if (!meeting) throw new Error("missing meeting");
 
-    const meetingWithUuid = { ...meeting, uuid: randomUUID(), email }
+    const meetingWithUuid = { ...meeting, uuid: randomUUID(), ownerEmail: email }
 
-    await addUserMeeting(email, meetingWithUuid)
+    await addUserMeeting(meetingWithUuid)
 
 
     return {
