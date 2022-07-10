@@ -1,28 +1,26 @@
-import "./index.css";
+import './index.css';
 
-import React from "react";
-import { hydrateRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
-import ConfigContext from "../components/ConfigContext";
-import { Config } from "../server/config";
-import App from "../App";
-
-const config = (window as any).__CONFIG__ as Config;
-delete (window as any).__CONFIG__;
+import React from 'react';
+import { hydrateRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import ConfigContext from '../components/ConfigContext';
+import App from '../App';
+import { Account } from '../components/Account';
+import config from "./getConfig"
 
 const render = () => {
-  const root = document.getElementById("root")
-  if (!root) throw new Error("root not found");
+  const root = document.getElementById('root');
+  if (!root) throw new Error('root not found');
   
   hydrateRoot(
     root,
-    <>
-      <ConfigContext.Provider value={config}>
+    <ConfigContext.Provider value={config()}>
+      <Account>
         <BrowserRouter>
           <App />
         </BrowserRouter>
-      </ConfigContext.Provider>
-    </>,
+      </Account>
+    </ConfigContext.Provider>
   );
 };
 

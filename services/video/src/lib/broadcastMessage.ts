@@ -12,71 +12,69 @@ const STAGE = process.env.STAGE;
 
 const websocketClient = new ApiGatewayManagementApiClient({
   endpoint: `https://${API_ID}.execute-api.${REGION}.amazonaws.com/${STAGE}`,
-  region: REGION
+  region: REGION,
 });
 
-const textEncoder = new TextEncoder()
+const textEncoder = new TextEncoder();
 
 // limit param is for testing purposes to ensure query pagination works
 export const broadcastMessage = async (message: Message, limit?: number) => {
-  const meetingConnections = await getChatroomConnections(message.meetingID, limit)
+  const meetingConnections = await getChatroomConnections(message.meetingID, limit);
 
   const promises = meetingConnections.map(async (ConnectionId) => {
     const params = new PostToConnectionCommand({
       ConnectionId,
-      Data: textEncoder.encode(JSON.stringify(message))
-    })
+      Data: textEncoder.encode(JSON.stringify(message)),
+    });
 
     try {
-      await websocketClient.send(params)
+      await websocketClient.send(params);
 
     } catch (e) {
 
       if ((e as any).statusCode === 410) { // stale connection
 
-        await ddb.send(new DeleteCommand({TableName, Key: buildWSConnectionKeys({wsConnectionID: ConnectionId, meetingID: message.meetingID})}))
+        await ddb.send(new DeleteCommand({ TableName, Key: buildWSConnectionKeys({ wsConnectionID: ConnectionId, meetingID: message.meetingID }) }));
 
-      }
-
-      else throw e;
+      } else throw e;
       
     }
-  })
+  });
 
-  return Promise.all(promises)
-}
+  return Promise.all(promises);
+};
 
 // limit param is for testing purposes to ensure query pagination works
 const getChatroomConnections = async (meetingID: string, limit?: number) => {
-  const wsConnectionIDs: string[] = []
+  const wsConnectionIDs: string[] = [];
   let lastEvaluated;
   let queryParams: QueryCommandInput = {
     TableName,
-    KeyConditionExpression: "pk = :meetingID and begins_with(sk, :connection)",
+    KeyConditionExpression: 'pk = :meetingID and begins_with(sk, :connection)',
     ExpressionAttributeValues: {
       ':meetingID': buildWSConnectionPK(meetingID),
-      ':connection': 'wsConnection#'
+      ':connection': 'wsConnection#',
     },
-    ProjectionExpression: 'wsConnectionID'
-  }
+    ProjectionExpression: 'wsConnectionID',
+  };
 
-  if (limit) queryParams.Limit = limit
+  if (limit) queryParams.Limit = limit;
 
   do {
     if (lastEvaluated) {
-      queryParams.ExclusiveStartKey = lastEvaluated
+      queryParams.ExclusiveStartKey = lastEvaluated;
     }
 
-    const results = await ddb.send(new QueryCommand(queryParams))
+    const results = await ddb.send(new QueryCommand(queryParams));
 
     if (!results.Items) break;
 
     for (let item of results.Items) {
-      wsConnectionIDs.push(item.wsConnectionID)
+      wsConnectionIDs.push(item.wsConnectionID);
     }
 
-    lastEvaluated = results.LastEvaluatedKey
-  } while (lastEvaluated)
+    lastEvaluated = results.LastEvaluatedKey;
+  } while (lastEvaluated);
 
-  return wsConnectionIDs
-}
+  return wsConnectionIDs;
+};

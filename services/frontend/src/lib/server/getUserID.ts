@@ -1,5 +1,5 @@
-import { UpdateCommand, UpdateCommandInput } from "@aws-sdk/lib-dynamodb"
-import { ddb, TableName } from "./config"
+import { UpdateCommand, UpdateCommandInput } from '@aws-sdk/lib-dynamodb';
+import { ddb, TableName } from './config';
 
 export const getUserID = async (): Promise<number> => {
   const params: UpdateCommandInput = {
@@ -7,18 +7,18 @@ export const getUserID = async (): Promise<number> => {
       pk: 'users',
       sk: 'count',
     },
-    UpdateExpression: "ADD #count :val",
+    UpdateExpression: 'ADD #count :val',
     ExpressionAttributeNames: {
-      '#count': 'count'
+      '#count': 'count',
     },
     ExpressionAttributeValues: {
-      ':val': 1
+      ':val': 1,
     },
     ReturnValues: 'UPDATED_NEW',
     TableName,
-  }
+  };
 
-  const returnVal = await ddb.send(new UpdateCommand(params))
+  const returnVal = await ddb.send(new UpdateCommand(params));
 
-  return returnVal.Attributes!.count
-}
+  return returnVal.Attributes!.count;
+};

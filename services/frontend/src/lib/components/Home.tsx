@@ -1,36 +1,17 @@
-import { Link } from "react-router-dom"
-import React, { useState } from "react"
-import { CognitoUser, CognitoUserPool, CognitoUserSession } from "amazon-cognito-identity-js"
-import { useEffect } from "react"
-import Dashboard from "./Dashboard"
+import { Link } from 'react-router-dom';
+import React, { useContext, useState } from 'react';
+import Dashboard from './Dashboard';
+import useAccount from './useAccount';
 
-export default function Home({ user, Pool }: { user: CognitoUser | null, Pool: CognitoUserPool }) {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [currentUser, setCurrentUser] = useState(user)
-
-  useEffect(() => {
-    const user = Pool.getCurrentUser();
-    if (user) {
-      user.getSession((err: Error, session: CognitoUserSession | null) => {
-        if (!err) {
-          setCurrentUser(user)
-          setIsLoggedIn(true)
-        } else {
-          console.error(err)
-        }
-      });
-    }
-  }, [])
-  console.log({currentUser})
+export default function Home({email}: {email: string | null}) {
   return <div>
-    {
-      isLoggedIn && currentUser ?
-        <Dashboard email={currentUser.getSignInUserSession()?.getIdToken().payload.email}/>
+    { email ?
+        <Dashboard email={email}/>
       :
-      <>
-        <Link to="signup">Sign up</Link>
-        <Link to="login">Log in</Link>
-      </>
+        <>
+          <Link to="signup">Sign up</Link>
+          <Link to="login">Log in</Link>
+        </>
     }
-  </div>
+  </div>;
 }

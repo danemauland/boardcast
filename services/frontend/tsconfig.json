@@ -17,7 +17,7 @@
   "include": [
     "src/**/*.ts",
     "tests/**/*.ts", "src/lib/App.tsx", "src/server/render.tsx"
-  ],
+, "src/lib/browser/config.tsx"  ],
   "exclude": [
     "./dist"
   ]

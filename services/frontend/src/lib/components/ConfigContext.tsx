@@ -1,6 +1,6 @@
-import { createContext } from "react";
+import { createContext } from 'react';
 
-import { Config } from "../server/config";
+import { Config } from '../server/config';
 
 const ConfigContext = createContext<Config | undefined>(undefined);
 

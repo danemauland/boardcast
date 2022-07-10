@@ -3,7 +3,7 @@ import 'aws-testing-library/lib/jest';
 import dotenv from 'dotenv';
 import path from 'path';
 
-jest.setTimeout(120000)
+jest.setTimeout(120000);
 
 const dir = `../../config/${process.env.STAGE === 'dev' ? 'local' : 'remote'}Integration.env`;
 

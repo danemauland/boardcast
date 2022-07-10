@@ -60,6 +60,13 @@ custom:
         - "*.js":
             # CacheControl: 'public, max-age=31104000' # 1 year
             CacheControl: 'no-cache'
+  serverless-offline:
+    useChildProcesses: true
+    noPrependStageInUrl: false
+    httpPort: 3000
+    lambdaPort: 3002
+  webpack:
+    webpackConfig: "webpack.server.config.js"
 
 
 
@@ -249,3 +256,4 @@ plugins:
 - serverless-plugin-scripts
 - serverless-s3-sync
 - serverless-iam-roles-per-function
+- serverless-offline

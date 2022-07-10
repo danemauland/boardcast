@@ -1,6 +1,6 @@
-import { GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb"
-import { ddb, TableName } from "@svc/lib/server/config"
-import { getUserID } from "@svc/lib/server/getUserID"
+import { GetCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { ddb, TableName } from '@svc/lib/server/config';
+import { getUserID } from '@svc/lib/server/getUserID';
 
 describe('getUserID', () => 
   it('returns an incremented count of the total number of users', async () => {
@@ -8,12 +8,12 @@ describe('getUserID', () =>
       TableName,
       Key: {
         pk: 'users',
-        sk: 'count'
-      }
-    }))
+        sk: 'count',
+      },
+    }));
 
-    const newUserID = await getUserID()
+    const newUserID = await getUserID();
 
-    expect(newUserID).toBeGreaterThan(counter.Item!.count)
-  })
-)
+    expect(newUserID).toBeGreaterThan(counter.Item!.count);
+  }),
+);

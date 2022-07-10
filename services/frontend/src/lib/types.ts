@@ -19,12 +19,12 @@ export interface Meeting {
   ownerEmail: string,
 }
 
-export type UserMeeting = Pick<Meeting, 'name' | 'timestamp' | 'uuid' | 'ownerEmail'>
+export type UserMeeting = Pick<Meeting, 'name' | 'timestamp' | 'uuid' | 'ownerEmail'>;
 
-export type DDBUserMeeting = UserMeeting & { type: 'userMeeting', pk: string, sk: string}
+export type DDBUserMeeting = UserMeeting & { type: 'userMeeting', pk: string, sk: string };
 
 export interface DDBMeeting extends Meeting {
   pk: string,
-  sk: "details",
-  type: "meeting"
+  sk: 'details',
+  type: 'meeting'
 }

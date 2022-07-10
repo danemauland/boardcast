@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { STAGE } from '@svc/lib/config';
 
-jest.setTimeout(120000)
+jest.setTimeout(120000);
 
 const dir = `../../config/${STAGE === 'dev' ? 'local' : 'remote'}Integration.env`;
 

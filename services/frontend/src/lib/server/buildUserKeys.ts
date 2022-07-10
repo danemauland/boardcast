@@ -1,1 +1,1 @@
-export const buildUserPK = (email: string) => `user#${email}`
+export const buildUserPK = (email: string) => `user#${email}`;

@@ -1,34 +1,34 @@
-import React, {useState} from "react"
-import { CognitoUser, CognitoUserPool } from "amazon-cognito-identity-js"
-import { useNavigate } from "react-router-dom"
-import useConfig from "./useConfig"
-import UserPool from "./UserPool"
+import { CognitoUser } from 'amazon-cognito-identity-js';
+import React, { useContext, useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { AccountContext } from './Account';
+import useConfig from './useConfig';
+import UserPool from './UserPool';
 
-export default function VerifyEmail({user}: {user: CognitoUser | null}) {
-  const [token, setToken] = useState('')
-  const [error, setError] = useState('')
-  const config = useConfig()
-  const navigate = useNavigate()
+export default function VerifyEmail() {
+  const [token, setToken] = useState('');
+  const [error, setError] = useState(null);
+  const config = useConfig();
+  const navigate = useNavigate();
+  const state = useLocation().state as {email: string}
+  const email = state.email
 
-  const email = user?.getSignInUserSession()?.getIdToken()?.payload?.email
-
-  if (!user || !email) navigate(`/${config.app.STAGE}/`)
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     const user = new CognitoUser({
-      Username: email!,
+      Username: email,
       Pool: UserPool
     })
 
     user.confirmRegistration(token, false, (err, result) => {
-      if(err) {
-        setError(err.message)
+      if (err) {
+        setError(err.message);
       } else {
-        navigate(`/${config.app.STAGE}/login`)
+        navigate(`/${config.app.STAGE}/login`);
       }
-    })
-  }
+    });
+  };
+
   return <form onSubmit={handleSubmit}>
     <label>
       Please input the verification code sent to your email:
@@ -36,5 +36,5 @@ export default function VerifyEmail({user}: {user: CognitoUser | null}) {
       <button>Submit</button>
       <div>{error}</div>
     </label>
-  </form>
+  </form>;
 }

@@ -1,11 +1,13 @@
-import { CognitoUserPool, ICognitoUserPoolData } from "amazon-cognito-identity-js";
-import useConfig from "./useConfig";
+import { CognitoUserPool, ICognitoUserPoolData } from 'amazon-cognito-identity-js';
+import getConfig from '../browser/getConfig';
 
-const config = useConfig()
+const config = getConfig()
 
 const poolData: ICognitoUserPoolData = {
   UserPoolId: config.app.USER_POOL_ID!,
-  ClientId: config.app.CLIENT_ID!
+  ClientId: config.app.CLIENT_ID!,
 };
 
-export default new CognitoUserPool(poolData)
+console.log(poolData)
+
+export default new CognitoUserPool(poolData);

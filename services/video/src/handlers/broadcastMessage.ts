@@ -1,24 +1,24 @@
-import { DynamoDBStreamEvent } from "aws-lambda";
+import { DynamoDBStreamEvent } from 'aws-lambda';
 import log from '@dazn/lambda-powertools-logger';
-import { broadcastMessage } from "@svc/lib/broadcastMessage";
-import { Message } from "@svc/lib/types";
-import { Marshaller } from "@aws/dynamodb-auto-marshaller";
+import { broadcastMessage } from '@svc/lib/broadcastMessage';
+import { Message } from '@svc/lib/types';
+import { Marshaller } from '@aws/dynamodb-auto-marshaller';
 
-const marshaller = new Marshaller()
+const marshaller = new Marshaller();
 
 export const handler = async (event: DynamoDBStreamEvent) => {
-  log.debug('Received event', { event })
+  log.debug('Received event', { event });
 
   for (let record of event.Records) {
     try {
-      const message = marshaller.unmarshallItem(record.dynamodb?.NewImage!) as unknown as Message
-      await broadcastMessage(message)
+      const message = marshaller.unmarshallItem(record.dynamodb?.NewImage!) as unknown as Message;
+      await broadcastMessage(message);
     } catch (e) {
-      log.error('error', e as Error)
+      log.error('error', e as Error);
       return {
         statusCode: 500,
-        body: `Connection Failed: ${JSON.stringify(e, Object.getOwnPropertyNames(e))}`
-      }
+        body: `Connection Failed: ${JSON.stringify(e, Object.getOwnPropertyNames(e))}`,
+      };
     }
 
   }
@@ -26,6 +26,6 @@ export const handler = async (event: DynamoDBStreamEvent) => {
   
   return {
     statusCode: 200,
-    body: 'Connection Successful'
-  }
-}
+    body: 'Connection Successful',
+  };
+};

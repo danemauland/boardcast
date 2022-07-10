@@ -1,21 +1,25 @@
-import { renderToString } from "react-dom/server"
-import ConfigContext from "../components/ConfigContext"
-import App from '../App'
-import html from "./html"
-import * as React from "react"
-import config from "./config"
-import { StaticRouter } from "react-router-dom/server"
+import { renderToString } from 'react-dom/server';
+import ConfigContext from '../components/ConfigContext';
+import App from '../App';
+import html from './html';
+import * as React from 'react';
+import config from './config';
+import { StaticRouter } from 'react-router-dom/server';
+import { Account } from '../components/Account';
+import { Stats } from './types';
 
-export default async function render(userID: number, url: string): Promise<string> {
-  const configWithID = {...config, userID}
+export default async function render(url: string): Promise<string> {
+  const stats = (await import("../../../dist/stats.json")) as unknown as Stats;
   const content = renderToString(
-    <ConfigContext.Provider value={configWithID}>
+    <ConfigContext.Provider value={config}>
+      <Account>
       <StaticRouter location={url}>
         <App />
       </StaticRouter>
-    </ConfigContext.Provider>
-  )
+      </Account>
+    </ConfigContext.Provider>,
+  );
 
 
-  return html({content, config: configWithID})
+  return html({ content, config, stats });
 }

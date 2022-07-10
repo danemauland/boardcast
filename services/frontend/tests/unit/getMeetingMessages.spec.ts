@@ -1,15 +1,15 @@
-import { BatchWriteCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
-import { buildMessageKeys } from "@svc/lib/server/buildMessageKeys";
-import { ddb } from "@svc/lib/server/config";
-import { getMeetingMessages } from "@svc/lib/server/getMeetingMessages";
-import { Message } from "@svc/lib/types";
-import { randomUUID } from "crypto";
-import { TableName } from "../../src/lib/server/config"
+import { BatchWriteCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { buildMessageKeys } from '@svc/lib/server/buildMessageKeys';
+import { ddb } from '@svc/lib/server/config';
+import { getMeetingMessages } from '@svc/lib/server/getMeetingMessages';
+import { Message } from '@svc/lib/types';
+import { randomUUID } from 'crypto';
+import { TableName } from '../../src/lib/server/config';
 
-describe("getMeetingMessages", () => {
-  const createdMessages: Message[] = []
+describe('getMeetingMessages', () => {
+  const createdMessages: Message[] = [];
   it('returns all the messages belonging to a meeting', async () => {
-    const meetingID = "testGetMeetingMessages";
+    const meetingID = 'testGetMeetingMessages';
 
     for (let i = 0; i < 3; i++) {
       const wsConnectionID = randomUUID();
@@ -18,25 +18,25 @@ describe("getMeetingMessages", () => {
         meetingID: meetingID,
         text: 'test',
         timestamp: new Date().toISOString(),
-        email: 'testUser'
-      }
+        email: 'testUser',
+      };
       await ddb.send(new PutCommand({
         TableName,
         Item: {
           ...message,
-          ...buildMessageKeys(message)
-        }
-      }))
-      createdMessages.push(message)
+          ...buildMessageKeys(message),
+        },
+      }));
+      createdMessages.push(message);
     }
 
-    const receivedMessages = await getMeetingMessages(meetingID, 1)
+    const receivedMessages = await getMeetingMessages(meetingID, 1);
 
-    expect(receivedMessages).toHaveLength(3)
+    expect(receivedMessages).toHaveLength(3);
 
-    const expectedMessages = createdMessages.map((message: Message) => expect.objectContaining({email: message.email, text: message.text}))
-    expect(receivedMessages).toStrictEqual(expect.arrayContaining(expectedMessages))
-  })
+    const expectedMessages = createdMessages.map((message: Message) => expect.objectContaining({ email: message.email, text: message.text }));
+    expect(receivedMessages).toStrictEqual(expect.arrayContaining(expectedMessages));
+  });
 
   afterAll(() => {
     return ddb.send(new BatchWriteCommand({
@@ -45,11 +45,11 @@ describe("getMeetingMessages", () => {
           return {
             DeleteRequest: {
               TableName,
-              Key: buildMessageKeys(message)
-            }
-          }
-        })
-      }
-    }))
-  })
-})
+              Key: buildMessageKeys(message),
+            },
+          };
+        }),
+      },
+    }));
+  });
+});
