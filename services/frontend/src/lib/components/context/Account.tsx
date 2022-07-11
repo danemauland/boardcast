@@ -5,7 +5,7 @@ import { AuthenticationDetails, CognitoUser, CognitoUserSession } from 'amazon-c
 
 export interface AccountContext {
   authenticate: (Username: string, Password: string) => Promise<unknown>;
-  getSession: () => Promise<CognitoUserSession | null>;
+  getSession: () => Promise<CognitoUserSession & {user: CognitoUser} & {headers: { Authorization: string }}| null>;
   getEmail: () => Promise<string | null>
 }
 
@@ -26,16 +26,27 @@ const authenticate = (Username: string, Password: string) => {
   });
 };
 
-const getSession = (): Promise<CognitoUserSession | null>  => {
+const getSession = (): Promise<CognitoUserSession & {user: CognitoUser} & {headers: { Authorization: string }}| null>  => {
   const user = Pool.getCurrentUser();
+  console.log({user})
   return new Promise((resolve, reject) => {
     if (user) {
-      user.getSession((err: Error | null, session: null | CognitoUserSession) => {
+      user.getSession(async (err: Error | null, session: null | CognitoUserSession) => {
         if (err) {
           console.error(err)
           reject(err);
-        } else {
-          resolve(session);
+        } else if (session) {
+          console.log({session})
+          // @ts-expect-error
+          const token = session.idToken.jwtToken;
+          // @ts-expect-error
+          resolve({
+            user,
+            headers: {
+              Authorization: token,
+            },
+            ...session
+          });
         }
       });
     } else {
@@ -46,7 +57,8 @@ const getSession = (): Promise<CognitoUserSession | null>  => {
 
 const getEmail = async (): Promise<string | null> => {
   const session = await getSession();
-  return session?.getIdToken().payload.email || null
+  // @ts-expect-error
+  return session?.idToken.payload.email || null
 };
 
 export const AccountContext = createContext<AccountContext>({getEmail, getSession, authenticate});

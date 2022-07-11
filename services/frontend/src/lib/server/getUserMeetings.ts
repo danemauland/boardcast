@@ -1,10 +1,10 @@
 import { QueryCommand, QueryCommandInput } from '@aws-sdk/lib-dynamodb';
 import { ddb } from './config';
 import { TableName } from './config';
-import { Message, Meeting } from '../types';
+import { Message, MeetingDetails } from '../types';
 import { buildUserPK } from './buildUserKeys';
 
-type BasicMeeting = Pick<Meeting, 'timestamp' | 'name' | 'uuid'>;
+type BasicMeeting = Pick<MeetingDetails, 'timestamp' | 'name' | 'meetingID'>;
 
 // limit param is for testing purposes to ensure query pagination works
 export async function getUserMeetings(email: string, limit?: number) {
@@ -17,11 +17,11 @@ export async function getUserMeetings(email: string, limit?: number) {
       ':email': buildUserPK(email),
       ':meeting': 'meeting#',
     },
-    ProjectionExpression: '#timestamp, #name, #uuid',
+    ProjectionExpression: '#timestamp, #name, #meetingID',
     ExpressionAttributeNames: {
       '#name': 'name',
       '#timestamp': 'timestamp',
-      '#uuid': 'uuid',
+      '#meetingID': 'meetingID',
     },
   };
 

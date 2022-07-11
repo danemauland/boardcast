@@ -1,5 +1,5 @@
 import { CognitoUserPool, ICognitoUserPoolData } from 'amazon-cognito-identity-js';
-import getConfig from '../browser/getConfig';
+import getConfig from '../../browser/getConfig';
 
 const config = getConfig()
 

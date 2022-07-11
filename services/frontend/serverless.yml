@@ -31,6 +31,7 @@ provider:
     USER_POOL_ID: !Ref UserPool
     CLIENT_ID: !Ref UserPoolClient
     DOMAIN_SUFFIX: ${self:org}-${self:service}-${sls:stage}
+    S3_BUCKET: ${cf:${self:custom.infraStack}.S3BucketMeetingAttachments}
 
 custom:
   appName: video
@@ -102,7 +103,7 @@ functions:
     handler: src/handlers/getMeetingMessages.handler
     events:
       - http:
-          path: /meeting/{meetingID}/messages
+          path: /api/meeting/{meetingID}/messages
           method: get
           cors: true
     iamRoleStatements:
@@ -116,7 +117,7 @@ functions:
     handler: src/handlers/getUserMeetings.handler
     events:
       - http:
-          path: /usermeetings/{email}
+          path: /api/usermeetings/{email}
           method: get
           cors: true
           authorizer:
@@ -129,11 +130,60 @@ functions:
       Resource:
         - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
 
-  APIGWGetMeeting:
-    handler: src/handlers/getMeeting.handler
+  APIGWAddAgendaItem:
+    handler: src/handlers/addAgendaItem.handler
     events:
       - http:
-          path: /meeting/{meetingID}
+          path: /api/agendaitem
+          method: POST
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: { Ref: APIGWAuthorizer }
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamoDB:PutItem
+      Resource:
+        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
+
+  APIGWGetOwnerMeeting:
+    handler: src/handlers/getOwnerMeeting.handler
+    events:
+      - http:
+          path: /api/meeting/{meetingID}
+          method: get
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: { Ref: APIGWAuthorizer }
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamoDB:Query
+      Resource:
+        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
+    - Effect: Allow
+      Resource:
+        - ${cf:${self:custom.infraStack}.S3BucketMeetingAttachmentsArn}
+        - !Join
+          - ""
+          - - ${cf:${self:custom.infraStack}.S3BucketMeetingAttachmentsArn}
+            - /*
+      Action:
+        - s3:GetObject
+        - s3:ListBucket
+        - s3:GetBucketLocation
+        - s3:GetObjectVersion
+        - s3:GetLifecycleConfiguration
+        - s3:PutObject
+        - s3:*
+
+  APIGWGetAttendeeMeeting:
+    handler: src/handlers/getAttendeeMeeting.handler
+    events:
+      - http:
+          path: /api/meeting/{meetingID}/{accessToken}
           method: get
           cors: true
     iamRoleStatements:
@@ -142,6 +192,20 @@ functions:
         - dynamoDB:Query
       Resource:
         - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
+    - Effect: Allow
+      Resource:
+        - ${cf:${self:custom.infraStack}.S3BucketMeetingAttachmentsArn}
+        - !Join
+          - ""
+          - - ${cf:${self:custom.infraStack}.S3BucketMeetingAttachmentsArn}
+            - /*
+      Action:
+        - s3:GetObject
+        - s3:ListBucket
+        - s3:GetBucketLocation
+        - s3:GetObjectVersion
+        - s3:GetLifecycleConfiguration
+      
 
   # APIGWAddUsername:
   #   handler: src/handlers/addUsername.handler
@@ -161,9 +225,12 @@ functions:
     handler: src/handlers/addUserMeeting.handler
     events:
       - http:
-          path: /usermeeting/{email}
+          path: /api/usermeeting/{email}
           method: post
           cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: { Ref: APIGWAuthorizer }
     iamRoleStatements:
     - Effect: Allow
       Action:

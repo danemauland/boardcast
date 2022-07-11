@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
-import useConfig from './useConfig';
+import useConfig from '../context/useConfig';
 import { useNavigate } from 'react-router-dom';
-import { AccountContext } from './Account';
+import { AccountContext } from '../context/Account';
 
 export default function Login() {
   const navigate = useNavigate();

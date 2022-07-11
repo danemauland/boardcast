@@ -1,20 +1,26 @@
 import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useConfig from './useConfig';
+import useConfig from './context/useConfig';
 import $ from 'jquery';
+import useAccount from './context/useAccount';
 
 export default function ({ email }: { email: string }) {
   const [timestamp, setTimestamp] = useState('');
   const [name, setName] = useState('');
   const navigate = useNavigate();
   const config = useConfig();
+  const { getSession } = useAccount()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const resp = await $.ajax(`${config.app.URL}/usermeeting/${encodeURIComponent(email)}`, {
+
+    const { headers } = (await getSession())!
+
+    const resp = await $.ajax(`${config.app.URL}/api/usermeeting/${encodeURIComponent(email)}`, {
       method: 'POST',
       contentType: 'application/json; charset=utf-8',
       data: JSON.stringify({ name, timestamp }),
+      headers
     });
 
     navigate(`/${ config.app.STAGE }/meeting/${resp}`);

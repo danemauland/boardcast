@@ -1,9 +1,9 @@
 import { PutCommand, PutCommandInput, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import { ddb, TableName } from './config';
-import { DDBMeeting, DDBUserMeeting, Meeting, UserMeeting } from '../types';
+import { DDBMeetingDetails, DDBUserMeeting, Meeting, MeetingDetails, UserMeeting } from '../types';
 import { buildUserPK } from './buildUserKeys';
 
-export async function addUserMeeting(meeting: UserMeeting) {
+export async function addUserMeeting(meeting: UserMeeting & Pick<MeetingDetails, 'meetingID'>) {
   const userMeeting: DDBUserMeeting = {
     ...meeting,
     pk: buildUserPK(meeting.ownerEmail),
@@ -17,11 +17,12 @@ export async function addUserMeeting(meeting: UserMeeting) {
     ReturnValues: 'ALL_OLD',
   };
 
-  const ddbMeeting: DDBMeeting = {
+  const ddbMeeting: DDBMeetingDetails = {
     ...meeting,
-    pk: `meeting#${meeting.uuid}`,
+    pk: `meeting#${meeting.meetingID}`,
     sk: 'details',
-    type: 'meeting',
+    type: 'meetingDetails',
+    accessTokens: {}
   };
 
   const putDDBMeeting: PutCommandInput = {
@@ -36,5 +37,5 @@ export async function addUserMeeting(meeting: UserMeeting) {
     ],
   });
 
-  return userMeeting;
+  return ddb.send(params);
 }

@@ -1,12 +1,11 @@
 import './index.css';
-
 import React from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import ConfigContext from '../components/ConfigContext';
 import App from '../App';
-import { Account } from '../components/Account';
 import config from "./getConfig"
+import ConfigContext from '../components/context/ConfigContext';
+import { Account } from '../components/context/Account';
 
 const render = () => {
   const root = document.getElementById('root');

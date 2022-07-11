@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import useConfig from './useConfig';
 import { useNavigate } from 'react-router-dom';
-import { CognitoUserAttribute } from 'amazon-cognito-identity-js';
-import UserPool from './UserPool';
+import UserPool from "../context/UserPool"
+import useConfig from "../context/useConfig"
 
 export default function Signup() {
   const navigate = useNavigate();

@@ -1,11 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import useConfig from './useConfig';
+import useConfig from './context/useConfig';
 
-export default function ({ uuid, timestamp, name }: { uuid: string, name: string, timestamp: string }) {
+export default function ({ meetingID, timestamp, name }: { meetingID: string, name: string, timestamp: string }) {
   const config = useConfig();
   const stage = config.app.STAGE
-  const url = `/${stage}/meeting/${uuid}`
+  const url = `/${stage}/meeting/${meetingID}`
 
   return <div>
     <Link to={url}>{name}</Link>

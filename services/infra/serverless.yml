@@ -36,6 +36,7 @@ custom:
 
 resources:
   - ${file(resources/ddbTables.yml)}
+  - ${file(resources/s3Buckets.yml)}
   - Outputs:
       AWSAccountId:
         Value: !Ref 'AWS::AccountId'

@@ -1,13 +1,17 @@
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { S3Client } from "@aws-sdk/client-s3"
 
 export const TableName = process.env.DDB_TABLE as string;
 export const REGION = process.env.REGION as string;
 export const STAGE = process.env.STAGE as string;
+export const Bucket = process.env.S3_BUCKET
 
 export const ddb = DynamoDBDocumentClient.from(
   new DynamoDBClient({ region: REGION }),
 );
+
+export const s3 = new S3Client({region: REGION})
 
 const isLocal = process.env.IS_LOCAL || process.env.IS_OFFLINE;
 

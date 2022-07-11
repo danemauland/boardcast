@@ -1,0 +1,25 @@
+Resources:
+  S3BucketMeetingAttachments:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      BucketName: ${self:custom.s3BucketPrefix}-meeting.attachments
+      AccessControl: Private
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+            AllowedOrigins:
+              - "*"
+
+Outputs:
+  S3BucketMeetingAttachments:
+    Value: !Ref S3BucketMeetingAttachments
+  S3BucketMeetingAttachmentsArn:
+    Value: !GetAtt S3BucketMeetingAttachments.Arn

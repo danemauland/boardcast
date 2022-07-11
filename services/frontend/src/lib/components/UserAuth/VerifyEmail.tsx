@@ -1,9 +1,8 @@
 import { CognitoUser } from 'amazon-cognito-identity-js';
 import React, { useContext, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { AccountContext } from './Account';
-import useConfig from './useConfig';
-import UserPool from './UserPool';
+import useConfig from '../context/useConfig';
+import UserPool from '../context/UserPool';
 
 export default function VerifyEmail() {
   const [token, setToken] = useState('');

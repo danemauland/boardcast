@@ -1,9 +1,18 @@
 import { Link } from 'react-router-dom';
 import React, { useContext, useState } from 'react';
 import Dashboard from './Dashboard';
-import useAccount from './useAccount';
+import useAccount from './context/useAccount';
 
-export default function Home({email}: {email: string | null}) {
+export default function Home() {
+
+  // can't use email from App because logging in sets email without retriggering context
+  const [email, setEmail] = useState<string | null>(null)
+
+  const { getEmail } = useAccount();
+
+  getEmail()
+    .then(setEmail)
+
   return <div>
     { email ?
         <Dashboard email={email}/>
