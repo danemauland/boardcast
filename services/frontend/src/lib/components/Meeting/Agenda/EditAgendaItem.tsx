@@ -5,7 +5,7 @@ import $ from "jquery"
 import { useParams } from "react-router-dom";
 import useAccount from "../../context/useAccount";
 
-export default function EditAgendaItem({agendaItem, orderNum, updateAgendaItem, upload}: {agendaItem: AgendaItem | null, orderNum: number, updateAgendaItem: (arg0: AgendaItem) => any, upload: Upload}) {
+export default function EditAgendaItem({agendaItem, orderNum, updateAgendaItem, upload, removeAgendaItem}: {agendaItem: AgendaItem | null, orderNum: number, updateAgendaItem: (arg0: AgendaItem) => any, upload: Upload, removeAgendaItem?: (arg0: AgendaItem) => any}) {
   const [title, setTitle] = useState(agendaItem?.title || '')
   const [timeEstimate, setTimeEstimate] = useState(agendaItem?.timeEstimate || 0)
   const [description, setDescription] = useState(agendaItem?.description || '')
@@ -19,6 +19,17 @@ export default function EditAgendaItem({agendaItem, orderNum, updateAgendaItem, 
     if (!fileObj) return;
 
     setFile(fileObj)
+  }
+
+  const handleDelete = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    const updateAgendaItemURL = `${config.app.URL}/api/meeting/${agendaItem?.meetingID}/agendaitem/${agendaItem?.agendaID}`
+    const { headers } = (await getSession())!
+    $.ajax(updateAgendaItemURL, {
+      method: 'DELETE',
+      headers
+    })
+    removeAgendaItem!(agendaItem!)
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement> ) => {
@@ -53,15 +64,15 @@ export default function EditAgendaItem({agendaItem, orderNum, updateAgendaItem, 
     });
 
     const newAgendaItem = JSON.parse(resp);
-    console.log({ newAgendaItem });
     updateAgendaItem(newAgendaItem);
   }
 
-  return <form onSubmit={handleSubmit}>
-    <input type="text" placeholder="Agenda Item Title" value={title} onChange={e => setTitle(e.target.value)}/>
+  return <form id="agenda-item-form" onSubmit={handleSubmit}>
+    <input type="text" placeholder="Title" value={title} onChange={e => setTitle(e.target.value)}/>
     <span>(</span><input type="number" placeholder="minutes" value={timeEstimate} onChange={e => setTimeEstimate(Number(e.target.value))}/><span>min)</span>
     <input type="file" onChange={handleFileChange}/>
     <textarea placeholder="description" cols={30} rows={10} value={description} onChange={e => setDescription(e.target.value)}></textarea>
-    <button>save</button>
+    <button>Submit</button>
+    {agendaItem && <button onClick={handleDelete}>Delete</button>}
   </form>
 }

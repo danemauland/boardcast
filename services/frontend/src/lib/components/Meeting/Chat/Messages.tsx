@@ -10,8 +10,8 @@ export default function ({ messages }: { messages: { text: string, email: string
 
   useEffect(scrollToBottom, [messages]);
 
-  return <div style={{ height: 500, width: 200, overflowY: 'scroll' }}>
+  return <div id="messages">
     {messages.map((message, i) => <Message text={message.text} email={message.email} key={i}/>)}
     <div ref={endRef} />
-  </div>;
+  </div>
 }

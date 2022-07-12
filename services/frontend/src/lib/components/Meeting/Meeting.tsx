@@ -6,6 +6,8 @@ import Chat from './Chat/Chat';
 import useConfig from '../context/useConfig';
 import Agenda from "./Agenda/Agenda"
 import useAccount from '../context/useAccount';
+import Invitees from "./Invitees/Invitees";
+import PresenterVideo from "./Videos/PresenterVideo"
 
 export default function() {
   const [email, setEmail] = useState<string | null>(null)
@@ -22,7 +24,6 @@ export default function() {
   const { accessToken } = useParams()
 
   const fetchMeeting = async () => {
-    console.log('fetching')
 
     let fetchMeetingURL = `${config.app.URL}/api/meeting/${meetingID}`
     let headers = undefined;
@@ -41,7 +42,6 @@ export default function() {
 
     const meeting = JSON.parse(resp) as Meeting
 
-    console.log({meeting});
     const isOwner = meeting.meetingDetails.ownerEmail === email
 
     if (isOwner) setIsOwner(isOwner)
@@ -69,8 +69,16 @@ export default function() {
 
   if (!email || !meeting) return <></>
 
-  return <>
-    <Agenda meeting={meeting} isOwner={isOwner} upload={upload}></Agenda>
-    <Chat email={email} meeting={meeting}></Chat>;
-  </>
+  return <div id='meeting-wrapper'>
+    <div>
+      <PresenterVideo meeting={meeting}/>
+      <Chat email={email} meeting={meeting}></Chat>
+    </div>
+    <div>
+      <Agenda meeting={meeting} isOwner={isOwner} upload={upload}/>
+    { isOwner &&
+      <Invitees meeting={meeting}/>
+    }
+    </div>
+  </div>
 }

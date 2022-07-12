@@ -18,8 +18,10 @@ export default function ({ ws, email }: { ws: React.MutableRefObject<WebSocket |
     }
   };
   
-  return <form ref={el => formRef.current = el} onSubmit={handleSubmit}>
-    <textarea onChange={(e) => setMessageText(e.target.value)} value={messageText} onKeyDown={onEnterPress}/>
-    <button>Send</button>
+  return <form id="send-message" ref={el => formRef.current = el} onSubmit={handleSubmit}>
+    <div id='send-message-container'>
+      <textarea onChange={(e) => setMessageText(e.target.value)} value={messageText} onKeyDown={onEnterPress}/>
+      <button>Send</button>
+    </div>
   </form>;
 }

@@ -1,3 +1,5 @@
+import { Credentials } from "@aws-sdk/client-sts";
+
 export interface Message {
   wsConnectionID: string,
   email: string,
@@ -62,7 +64,8 @@ export interface Meeting {
   meetingDetails: MeetingDetails,
   messages: Message[],
   agendaItems: AgendaItem[],
-  upload: Upload | null
+  upload: Upload | null,
+  credentials?: Credentials
 }
 
 export interface Upload {

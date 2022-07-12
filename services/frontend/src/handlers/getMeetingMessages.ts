@@ -5,6 +5,7 @@ import { getMeetingMessages } from '@svc/lib/server/getMeetingMessages';
 
 
 export const handler = async (event: APIGatewayEvent, _context: Context): Promise<APIGatewayProxyResult> => {
+  // todo: add check to make sure requester is owner or invited attendee
   log.debug('received event', { event });
   try {
     const meetingID = event.pathParameters?.meetingID;
@@ -12,8 +13,6 @@ export const handler = async (event: APIGatewayEvent, _context: Context): Promis
     if (!meetingID) throw new Error('missing meetingID');
 
     const meetingMessages = await getMeetingMessages(meetingID);
-
-    console.log({ meetingMessages });
 
     return {
       statusCode: 200,

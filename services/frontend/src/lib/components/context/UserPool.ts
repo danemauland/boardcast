@@ -8,6 +8,4 @@ const poolData: ICognitoUserPoolData = {
   ClientId: config.app.CLIENT_ID!,
 };
 
-console.log(poolData)
-
 export default new CognitoUserPool(poolData);

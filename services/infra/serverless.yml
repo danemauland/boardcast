@@ -29,6 +29,7 @@ provider:
 custom:
   dynamoDbTablePrefix: ${self:service}-${sls:stage}
   s3BucketPrefix: ${self:service}-${sls:stage}
+  iamRolePrefix: ${self:service}-${sls:stage}
   deletionPolicy:
     personal: Delete
     dev: Delete
@@ -37,6 +38,7 @@ custom:
 resources:
   - ${file(resources/ddbTables.yml)}
   - ${file(resources/s3Buckets.yml)}
+  - ${file(resources/iamRoles.yml)}
   - Outputs:
       AWSAccountId:
         Value: !Ref 'AWS::AccountId'

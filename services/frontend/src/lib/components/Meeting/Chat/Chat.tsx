@@ -43,10 +43,10 @@ export default function Chat({ email, meeting }: { email: string, meeting: Meeti
   }, [messages, ws.current]);
 
 
-  return <>
+  return <div id="messages-wrapper">
     <Messages messages={messages} />
     { ws && 
       <SendMessage ws={ws} email={email} />
     }
-  </>;
+  </div>
 }

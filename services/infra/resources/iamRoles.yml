@@ -1,0 +1,27 @@
+Resources:
+  IAMRoleKinesisVideo:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS:
+                - arn:aws:iam::895651511551:user/personal-serverless
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: ${self:custom.iamRolePrefix}-kinesisVideo
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Resource: "*"
+              Action: "kinesisvideo:*"
+      RoleName: ${self:custom.iamRolePrefix}-kinesisVideo
+
+Outputs:
+  IAMRoleKinesisVideoArn:
+    Value: !GetAtt IAMRoleKinesisVideo.Arn

@@ -1,12 +1,15 @@
 import { QueryCommand, QueryCommandInput } from "@aws-sdk/lib-dynamodb";
 import { AgendaItem, Attachment, DDBAgendaItem, DDBMeetingDetails, DDBMessage, Meeting, Upload } from "../types";
-import { ddb, s3, TableName, Bucket } from "./config";
+import config, { ddb, s3, TableName, Bucket } from "./config";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
 import { randomUUID } from "crypto";
 import { getNewUploadURL } from "./getNewUploadURL";
+import { STSClient, AssumeRoleCommand } from "@aws-sdk/client-sts";
 
-export async function getMeeting(meetingID: string, isOwner = false, limit?: number): Promise<Meeting> {
+const sts = new STSClient({region: config.app.REGION})
+
+export async function getMeeting(meetingID: string, uuid: string, isOwner = false, limit?: number): Promise<Meeting> {
   const meetingItems = await getMeetingItems(meetingID, limit)
 
   const messages = meetingItems.filter(item => item.type === 'message') as DDBMessage[]
@@ -20,6 +23,15 @@ export async function getMeeting(meetingID: string, isOwner = false, limit?: num
   if (isOwner) {
     meeting.upload = await buildUpload(meetingID)
   }
+
+  // const assumeRoleOutput = await sts.send(new AssumeRoleCommand({
+  //   DurationSeconds: 60 * 60,
+  //   RoleArn: process.env.KINESIS_ROLE,
+  //   ExternalId: uuid,
+  //   RoleSessionName: meetingID + '_' + uuid
+  // }))
+
+  // meeting.credentials = assumeRoleOutput.Credentials!
 
   console.log({meeting})
 

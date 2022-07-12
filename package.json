@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
-    "infra:deploy": "cd ./services/infra && cross-env STAGE=${STAGE:=dev} sls deploy -s $STAGE",
+    "infra:deploy": "cd ./services/infra && cross-env STAGE=${STAGE:=dev} sls deploy -s STAGE",
     "frontend:test-unit": "cd ./services/frontend && npm run test-unit",
     "frontend:test-integration": "cd ./services/frontend && npm run test-integration",
     "frontend:deploy": "cd ./services/frontend && cross-env STAGE=${STAGE:=dev} sls deploy -s $STAGE",

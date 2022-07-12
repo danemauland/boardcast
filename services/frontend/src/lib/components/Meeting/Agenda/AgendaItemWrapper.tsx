@@ -3,7 +3,7 @@ import AgendaItemComponent from "./AgendaItemComponent"
 import React, { useState } from "react"
 import EditAgendaItem from "./EditAgendaItem";
 
-export default function AgendaItemWrapper({agendaItem, isOwner, updateAgendaItem, upload}: {agendaItem: AgendaItem, isOwner: boolean, updateAgendaItem: (arg0: AgendaItem) => any, upload: Upload | null}) {
+export default function AgendaItemWrapper({agendaItem, isOwner, updateAgendaItem, upload, removeAgendaItem}: {agendaItem: AgendaItem, isOwner: boolean, updateAgendaItem: (arg0: AgendaItem) => any, upload: Upload | null, removeAgendaItem: (arg0: AgendaItem) => any}) {
   const [isEditting, setIsEditting] = useState(false)
 
   const saveAgendaItem = (agendaItem: AgendaItem) => {
@@ -13,11 +13,11 @@ export default function AgendaItemWrapper({agendaItem, isOwner, updateAgendaItem
   console.log({agendaItem})
   return <>
     { isEditting ? 
-        <EditAgendaItem agendaItem={agendaItem} orderNum={agendaItem.orderNum} updateAgendaItem={saveAgendaItem} upload={upload!}/>
+        <EditAgendaItem agendaItem={agendaItem} orderNum={agendaItem.orderNum} updateAgendaItem={saveAgendaItem} upload={upload!} removeAgendaItem={removeAgendaItem}/>
       :
         <>
           <AgendaItemComponent agendaItem={agendaItem}/>
-          {isOwner && <button onClick={(e => setIsEditting(true))}>Edit</button>}
+          {isOwner && <a className="edit" onClick={(e => {e.preventDefault(); setIsEditting(true)})}>Edit</a>}
         </>
     }
   </>

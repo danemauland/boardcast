@@ -1,10 +1,10 @@
 import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useConfig from './context/useConfig';
+import useConfig from '../context/useConfig';
 import $ from 'jquery';
-import useAccount from './context/useAccount';
+import useAccount from '../context/useAccount';
 
-export default function ({ email }: { email: string }) {
+export default function () {
   const [timestamp, setTimestamp] = useState('');
   const [name, setName] = useState('');
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ export default function ({ email }: { email: string }) {
 
     const { headers } = (await getSession())!
 
-    const resp = await $.ajax(`${config.app.URL}/api/usermeeting/${encodeURIComponent(email)}`, {
+    const resp = await $.ajax(`${config.app.URL}/api/usermeeting/`, {
       method: 'POST',
       contentType: 'application/json; charset=utf-8',
       data: JSON.stringify({ name, timestamp }),
@@ -26,8 +26,9 @@ export default function ({ email }: { email: string }) {
     navigate(`/${ config.app.STAGE }/meeting/${resp}`);
   };
 
-  return <form onSubmit={handleSubmit}>
-    <input onChange={(e) => setName(e.target.value)} value={name} />
+  return <form onSubmit={handleSubmit} id='new-meeting'>
+    <h2>Schedule your next boardcast</h2>
+    <input onChange={(e) => setName(e.target.value)} value={name} placeholder='Boardcast Title' />
     <input type="datetime-local" onChange={(e) => setTimestamp(e.target.value)} value={timestamp} />
     <button>Send</button>
   </form>;

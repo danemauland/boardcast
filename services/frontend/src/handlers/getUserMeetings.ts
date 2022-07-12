@@ -7,13 +7,11 @@ import { getUserMeetings } from '@svc/lib/server/getUserMeetings';
 export const handler = async (event: APIGatewayEvent, _context: Context): Promise<APIGatewayProxyResult> => {
   log.debug('received event', { event });
   try {
-    const email = event.pathParameters?.email;
+    const email = event.requestContext!.authorizer!.claims.email
 
     if (!email) throw new Error('missing email');
 
     const userMeetings = await getUserMeetings(email);
-
-    console.log({ userMeetings });
 
     return {
       statusCode: 200,
