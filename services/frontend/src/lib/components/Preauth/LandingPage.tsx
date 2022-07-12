@@ -21,7 +21,7 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-          <div id="video-wrapper"><video src="https://video-frontend-prod-distbucket-1a8g1v954mb60.s3.amazonaws.com/video1744259500.mp4"></video></div>
+          <div id="video-wrapper"><iframe width="560" height="315" src="https://www.youtube.com/embed/S3vsMwZ6swc" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe></div>
         </div>
       </div>
     </div>
