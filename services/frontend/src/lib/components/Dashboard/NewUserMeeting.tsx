@@ -19,7 +19,7 @@ export default function () {
     const resp = await $.ajax(`${config.app.URL}/api/usermeeting/`, {
       method: 'POST',
       contentType: 'application/json; charset=utf-8',
-      data: JSON.stringify({ name, timestamp }),
+      data: JSON.stringify({ name, timestamp: new Date(timestamp).toISOString() }),
       headers
     });
 

@@ -21,7 +21,7 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-          <div id="video-wrapper">Video Placeholder</div>
+          <div id="video-wrapper"><video src="https://video-frontend-prod-distbucket-1a8g1v954mb60.s3.amazonaws.com/video1744259500.mp4"></video></div>
         </div>
       </div>
     </div>
