@@ -22,7 +22,7 @@
   },
   "homepage": "",
   "devDependencies": {
-    "serverless": "^3.18.1",
+    "serverless": "^3.21.0",
     "serverless-esbuild": "^1.31.0"
   }
 }
