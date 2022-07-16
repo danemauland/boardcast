@@ -1,6 +1,6 @@
 org: danemauland
-app: video
-service: video-frontend
+app: boardcast
+service: boardcast-frontend
 
 frameworkVersion: '3'
 
@@ -11,6 +11,9 @@ provider:
   logRetentionInDays: 30
   logs:
     httpApi: true
+  apiGateway:
+    restApiId: ${cf:${self:custom.restAPIStack}.ApiGatewayRestApi}
+    restApiRootResourceId: ${cf:${self:custom.restAPIStack}.ApiGatewayRestApiRootId}
   environment:
     STAGE: ${sls:stage}
     REGION: ${self:provider.region}
@@ -19,25 +22,24 @@ provider:
     API_GW_URL:
       Fn::Join:
           - ""
-          - - https://
-            - Ref: ApiGatewayRestApi
-            - .execute-api.
+          - - https://${cf:${self:custom.restAPIStack}.ApiGatewayRestApi}.execute-api.
             - Ref: AWS::Region
             - .amazonaws.com/
             - ${sls:stage}
-    WEBSOCKET_DOMAIN: ${cf:${self:custom.backendStack}.APIGWWebsocketApi}
+    WEBSOCKET_DOMAIN: ${cf:${self:custom.wsStack}.APIGWWebsocketApi}
     APP_DIST_URL: ${self:custom.distBucketUrl}
     DDB_TABLE: ${cf:${self:custom.infraStack}.DDBTableMeeting}
-    USER_POOL_ID: !Ref UserPool
-    CLIENT_ID: !Ref UserPoolClient
-    DOMAIN_SUFFIX: ${self:org}-${self:service}-${sls:stage}
+    USER_POOL: ${cf:${self:custom.infraStack}.CogUserPoolID}
+    CLIENT_ID: ${cf:${self:custom.infraStack}.CogUserPoolClientID}
+    DOMAIN_SUFFIX: ${cf:${self:custom.infraStack}.DomainSuffix}
     S3_BUCKET: ${cf:${self:custom.infraStack}.S3BucketMeetingAttachments}
     KINESIS_ROLE: ${cf:${self:custom.infraStack}.IAMRoleKinesisVideoArn}
 
 custom:
-  appName: video
-  backendStack: ${self:custom.appName}-backend-${sls:stage}
+  appName: boardcast
+  wsStack: ${self:custom.appName}-websocket-${sls:stage}
   infraStack: ${self:custom.appName}-infra-${sls:stage}
+  restAPIStack: ${self:custom.appName}-restapi-${sls:stage}
   awsAccountId: ${cf:${self:custom.infraStack}.AWSAccountId}
   distBucketUrl:
     Fn::Join:
@@ -71,7 +73,6 @@ custom:
     webpackConfig: "webpack.server.config.js"
 
 
-
 package:
   individually: true
   patterns:
@@ -100,184 +101,8 @@ functions:
       Resource:
         - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
 
-  APIGWGetMeetingMessages:
-    handler: src/handlers/getMeetingMessages.handler
-    events:
-      - http:
-          path: /api/meeting/{meetingID}/messages
-          method: get
-          cors: true
-    iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamoDB:Query
-      Resource:
-        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
-
-  APIGWGetUserMeetings:
-    handler: src/handlers/getUserMeetings.handler
-    events:
-      - http:
-          path: /api/usermeetings/
-          method: get
-          cors: true
-          authorizer:
-            type: COGNITO_USER_POOLS
-            authorizerId: { Ref: APIGWAuthorizer }
-    iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamoDB:Query
-      Resource:
-        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
-
-  APIGWInvite:
-    handler: src/handlers/invite.handler
-    events:
-      - http:
-          path: /api/meeting/{meetingID}/invite
-          method: POST
-          cors: true
-          authorizer:
-            type: COGNITO_USER_POOLS
-            authorizerId: { Ref: APIGWAuthorizer }
-    iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamoDB:Query
-        - dynamoDB:UpdateItem
-        - dynamoDB:GetItem
-      Resource:
-        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
-    - Effect: Allow
-      Action:
-        - ses:SendEmail
-        - ses:SendRawEmail
-      Resource:
-        - '*'
-
-  APIGWAddAgendaItem:
-    handler: src/handlers/addAgendaItem.handler
-    events:
-      - http:
-          path: /api/agendaitem
-          method: POST
-          cors: true
-          authorizer:
-            type: COGNITO_USER_POOLS
-            authorizerId: { Ref: APIGWAuthorizer }
-    iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamoDB:PutItem
-        - dynamoDB:GetItem
-      Resource:
-        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
-
-  APIGWDeleteAgendaItem:
-    handler: src/handlers/deleteAgendaItem.handler
-    events: 
-      - http:
-          path: /api/meeting/{meetingID}/agendaitem/{agendaItemID}
-          method: DELETE
-          cors: true
-          authorizer:
-            type: COGNITO_USER_POOLS
-            authorizerId: { Ref: APIGWAuthorizer }
-    iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamoDB:DeleteItem
-        - dynamoDB:GetItem
-      Resource:
-        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
-
-  APIGWGetOwnerMeeting:
-    handler: src/handlers/getOwnerMeeting.handler
-    events:
-      - http:
-          path: /api/meeting/{meetingID}
-          method: get
-          cors: true
-          authorizer:
-            type: COGNITO_USER_POOLS
-            authorizerId: { Ref: APIGWAuthorizer }
-    iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamoDB:Query
-        - dynamoDB:GetItem
-      Resource:
-        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
-    - Effect: Allow
-      Resource:
-        - ${cf:${self:custom.infraStack}.S3BucketMeetingAttachmentsArn}
-        - !Join
-          - ""
-          - - ${cf:${self:custom.infraStack}.S3BucketMeetingAttachmentsArn}
-            - /*
-      Action:
-        - s3:GetObject
-        - s3:ListBucket
-        - s3:GetBucketLocation
-        - s3:GetObjectVersion
-        - s3:GetLifecycleConfiguration
-        - s3:PutObject
-        - s3:*
-
-  APIGWGetAttendeeMeeting:
-    handler: src/handlers/getAttendeeMeeting.handler
-    events:
-      - http:
-          path: /api/meeting/{meetingID}/{accessToken}
-          method: get
-          cors: true
-    iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamoDB:Query
-        - dynamoDB:GetItem
-      Resource:
-        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
-    - Effect: Allow
-      Resource:
-        - ${cf:${self:custom.infraStack}.S3BucketMeetingAttachmentsArn}
-        - !Join
-          - ""
-          - - ${cf:${self:custom.infraStack}.S3BucketMeetingAttachmentsArn}
-            - /*
-      Action:
-        - s3:GetObject
-        - s3:ListBucket
-        - s3:GetBucketLocation
-        - s3:GetObjectVersion
-        - s3:GetLifecycleConfiguration
-
-  APIGWAddUserMeeting:
-    handler: src/handlers/addUserMeeting.handler
-    events:
-      - http:
-          path: /api/usermeeting/
-          method: post
-          cors: true
-          authorizer:
-            type: COGNITO_USER_POOLS
-            authorizerId: { Ref: APIGWAuthorizer }
-    iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamoDB:PutItem
-      Resource:
-        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
-
 resources:
   Resources:
-    ApiGatewayRestApi:
-      Type: AWS::ApiGateway::RestApi
-      DependsOn: UserPool
-      Properties:
-        MinimumCompressionSize: 1000
-
     DistBucket:
       Type: AWS::S3::Bucket
       DeletionPolicy: Delete
@@ -291,64 +116,16 @@ resources:
               AllowedOrigins:
                 - Fn::Join:
                     - ""
-                    - - https://
-                      - Ref: ApiGatewayRestApi
-                      - .execute-api.
+                    - - https://${cf:${self:custom.restAPIStack}.ApiGatewayRestApi}.execute-api.
                       - Ref: AWS::Region
                       - .amazonaws.com
-
-    UserPool:
-      Type: AWS::Cognito::UserPool
-      Properties:
-        UserPoolName: meeting-user-pool-${sls:stage}
-        UsernameAttributes:
-          - email
-        AutoVerifiedAttributes:
-          - email
-        # AliasAttributes: 
-        #   - email
-
-    UserPoolClient:
-      Type: AWS::Cognito::UserPoolClient
-      Properties:
-        ClientName: service-user-pool-client-${sls:stage}
-        UserPoolId:
-          Ref: UserPool
-        ExplicitAuthFlows:
-          - ALLOW_USER_SRP_AUTH
-          - ALLOW_REFRESH_TOKEN_AUTH
-        GenerateSecret: false
-        SupportedIdentityProviders:
-          - COGNITO
-
-    UserPoolDomain:
-      Type: AWS::Cognito::UserPoolDomain 
-      Properties:
-        UserPoolId: 
-          Ref: UserPool
-        Domain: service-user-pool-domain-${self:provider.environment.DOMAIN_SUFFIX}
-
-    APIGWAuthorizer: 
-      Type: AWS::ApiGateway::Authorizer
-      Properties:
-        Name: ${self:service}-${sls:stage}-apigw-authorizer
-        AuthorizerResultTtlInSeconds: 10
-        IdentitySource: method.request.header.Authorization
-        RestApiId: 
-          Ref: ApiGatewayRestApi
-        Type: COGNITO_USER_POOLS
-        ProviderARNs: 
-          - {"Fn::Join": ["", ["arn:aws:cognito-idp:", {Ref: "AWS::Region"}, ":", {Ref: "AWS::AccountId"}, ":userpool/", Ref: UserPool]]}
   
   Outputs:
-    ApiGatewayRestApi:
-      Description: API Gateway Endpoint
-      Value:
-        Ref: ApiGatewayRestApi
     DistBucket:
       Description: Distribution S3 Bucket
       Value:
         Ref: DistBucket
+
 plugins:
 - serverless-esbuild
 - serverless-export-env

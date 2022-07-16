@@ -1,4 +1,4 @@
-import { Message } from '../types';
+import { Message } from './types';
 
 export const buildMessagePK = (message: Pick<Message, 'meetingID'>) => `meeting#${message.meetingID}`;
 

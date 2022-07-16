@@ -1,8 +1,8 @@
 import 'source-map-support/register';
 import { Context, APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 import log from '@dazn/lambda-powertools-logger';
-import { isMeetingOwner } from '@svc/lib/server/isMeetingOwner';
-import { invite } from '@svc/lib/server/invite';
+import { isMeetingOwner } from '@svc/lib/isMeetingOwner';
+import { invite } from '@svc/lib/invite';
 
 export const handler = async (event: APIGatewayEvent, _context: Context): Promise<APIGatewayProxyResult> => {
   log.debug('received event', { event });

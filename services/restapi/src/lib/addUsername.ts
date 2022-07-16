@@ -1,5 +1,5 @@
 import { UpdateCommand, UpdateCommandInput } from '@aws-sdk/lib-dynamodb';
-import { ddb, TableName } from '@svc/lib/server/config';
+import { ddb, TableName } from '@svc/lib/config';
 
 export async function addUsername(userID: number, username: string) {
   const params: UpdateCommandInput = {

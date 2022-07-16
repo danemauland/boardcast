@@ -1,6 +1,6 @@
 org: danemauland
-app: video
-service: video-backend
+app: boardcast
+service: boardcast-websocket
 
 frameworkVersion: '3'
 
@@ -20,7 +20,7 @@ provider:
     API_GW_DOMAIN: !Ref WebsocketsApi
 
 custom:
-  appName: video
+  appName: boardcast
   infraStack: ${self:custom.appName}-infra-${sls:stage}
   awsAccountId: ${cf:${self:custom.infraStack}.AWSAccountId}
   esbuild:

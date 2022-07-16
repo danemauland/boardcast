@@ -5,18 +5,19 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
-    "infra:deploy": "cd ./services/infra && cross-env STAGE=${STAGE:=dev} sls deploy -s STAGE",
+    "infra:deploy": "cd ./services/infra && cross-env STAGE=${STAGE:=dev} sls deploy -s $STAGE",
     "frontend:test-unit": "cd ./services/frontend && npm run test-unit",
     "frontend:test-integration": "cd ./services/frontend && npm run test-integration",
     "frontend:deploy": "cd ./services/frontend && cross-env STAGE=${STAGE:=dev} sls deploy -s $STAGE",
     "frontend:dotenv": "cd ./services/frontend && cross-env STAGE=${STAGE:=dev} sls export-env -s $STAGE",
-    "video:deploy": "cd ./services/video && cross-env STAGE=${STAGE:=dev} sls deploy -s $STAGE",
-    "video:dotenv": "cd ./services/video && cross-env STAGE=${STAGE:=dev} sls export-env -s $STAGE",
-    "video:tsc": "cd ./services/video && tsc -w",
-    "video:test-e2e": "cd ./services/video && npm run test-e2e",
-    "video:test-unit": "cd ./services/video && npm run test-unit",
-    "video:test-integration": "cd ./services/video && npm run test-integration",
-    "video:test-all": "cd ./services/video && npm run test-all"
+    "ws:deploy": "cd ./services/ws && cross-env STAGE=${STAGE:=dev} sls deploy -s $STAGE",
+    "ws:dotenv": "cd ./services/ws && cross-env STAGE=${STAGE:=dev} sls export-env -s $STAGE",
+    "ws:tsc": "cd ./services/ws && tsc -w",
+    "ws:test-e2e": "cd ./services/ws && npm run test-e2e",
+    "ws:test-unit": "cd ./services/ws && npm run test-unit",
+    "ws:test-integration": "cd ./services/ws && npm run test-integration",
+    "ws:test-all": "cd ./services/ws && npm run test-all",
+    "restapi:deploy": "cd ./services/restapi && cross-env STAGE=${STAGE:=dev} sls deploy -s $STAGE"
   },
   "repository": {
     "type": "git",

@@ -1,25 +1,24 @@
 import 'source-map-support/register';
 import { Context, APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 import log from '@dazn/lambda-powertools-logger';
-import { getMeetingMessages } from '@svc/lib/server/getMeetingMessages';
+import { addUsername } from '@svc/lib/addUsername';
 
 
 export const handler = async (event: APIGatewayEvent, _context: Context): Promise<APIGatewayProxyResult> => {
-  // todo: add check to make sure requester is owner or invited attendee
   log.debug('received event', { event });
   try {
-    const meetingID = event.pathParameters?.meetingID;
+    const userID = Number(event.pathParameters?.userID);
+    const username = JSON.parse(event.body!).username;
 
-    if (!meetingID) throw new Error('missing meetingID');
-
-    const meetingMessages = await getMeetingMessages(meetingID);
+    if (!userID) throw new Error('missing userID');
+    if (!username) throw new Error('missing username');
 
     return {
       statusCode: 200,
       headers: {
         'Content-Type': 'text/html',
       },
-      body: JSON.stringify(meetingMessages),
+      body: await addUsername(userID, username),
     };
   } catch (error) {
     log.error('error', error as Error);

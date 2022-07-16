@@ -1,6 +1,6 @@
 import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { randomUUID } from "crypto";
-import { MeetingDetails } from "../types";
+import { MeetingDetails } from "./types";
 import config, { ddb, REGION, TableName } from "./config";
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 

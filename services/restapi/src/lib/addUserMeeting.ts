@@ -1,6 +1,6 @@
 import { PutCommand, PutCommandInput, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import { ddb, TableName } from './config';
-import { DDBMeetingDetails, DDBUserMeeting, Meeting, MeetingDetails, UserMeeting } from '../types';
+import { DDBMeetingDetails, DDBUserMeeting, Meeting, MeetingDetails, UserMeeting } from './types';
 import { buildUserPK } from './buildUserKeys';
 
 export async function addUserMeeting(meeting: UserMeeting & Pick<MeetingDetails, 'meetingID'>) {
