@@ -43,6 +43,11 @@ custom:
     exclude: []
   export-env:
     overwrite: true
+  serverless-offline:
+    useChildProcesses: true
+    noPrependStageInUrl: false
+    httpPort: 3002
+    lambdaPort: 4002
 
 package:
   individually: true
@@ -258,3 +263,4 @@ plugins:
 - serverless-export-env
 - serverless-plugin-scripts
 - serverless-iam-roles-per-function
+- serverless-offline

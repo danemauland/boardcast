@@ -2,13 +2,12 @@ import 'source-map-support/register';
 import { Context, APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 import render from '../lib/server/render';
 import log from '@dazn/lambda-powertools-logger';
-import { getUserID } from '@svc/lib/server/getUserID';
-import config from '@svc/lib/server/config';
-
+import getConfig from '@svc/lib/getConfig';
 
 export const handler = async (event: APIGatewayEvent, _context: Context): Promise<APIGatewayProxyResult> => {
   log.debug('received event', { event });
   try {
+    const config = getConfig()
     return {
       statusCode: 200,
       headers: {

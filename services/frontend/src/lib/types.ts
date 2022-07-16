@@ -72,3 +72,22 @@ export interface Upload {
   s3Key: string,
   url: string
 }
+
+/** Webpack `stats.json` file structure */
+export type Stats = {
+  scripts: string[]
+  styles: string[]
+}
+
+export interface Config {
+  app: {
+    URL: string,
+    WEBSOCKET_URL: string,
+    DIST_URL: string,
+    USER_POOL_ID: string,
+    CLIENT_ID: string,
+    STAGE: string,
+    REGION: string,
+    meetingID?: string,
+  }
+};

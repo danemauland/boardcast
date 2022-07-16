@@ -29,7 +29,7 @@ provider:
     WEBSOCKET_DOMAIN: ${cf:${self:custom.wsStack}.APIGWWebsocketApi}
     APP_DIST_URL: ${self:custom.distBucketUrl}
     DDB_TABLE: ${cf:${self:custom.infraStack}.DDBTableMeeting}
-    USER_POOL: ${cf:${self:custom.infraStack}.CogUserPoolID}
+    USER_POOL_ID: ${cf:${self:custom.infraStack}.CogUserPoolID}
     CLIENT_ID: ${cf:${self:custom.infraStack}.CogUserPoolClientID}
     DOMAIN_SUFFIX: ${cf:${self:custom.infraStack}.DomainSuffix}
     S3_BUCKET: ${cf:${self:custom.infraStack}.S3BucketMeetingAttachments}
@@ -67,8 +67,8 @@ custom:
   serverless-offline:
     useChildProcesses: true
     noPrependStageInUrl: false
-    httpPort: 3000
-    lambdaPort: 3002
+    httpPort: 3001
+    lambdaPort: 4001
   webpack:
     webpackConfig: "webpack.server.config.js"
 

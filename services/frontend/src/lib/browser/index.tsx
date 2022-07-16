@@ -3,7 +3,7 @@ import React from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from '../App';
-import config from "./getConfig"
+import getConfig from "../getConfig"
 import ConfigContext from '../components/context/ConfigContext';
 import { Account } from '../components/context/Account';
 
@@ -13,7 +13,7 @@ const render = () => {
   
   hydrateRoot(
     root,
-    <ConfigContext.Provider value={config()}>
+    <ConfigContext.Provider value={getConfig()}>
       <Account>
         <BrowserRouter>
           <App />
