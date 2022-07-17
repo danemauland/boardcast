@@ -30,7 +30,7 @@
     "aws-testing-library": "^2.1.4",
     "dotenv": "^16.0.1",
     "esbuild": "^0.14.48",
-    "serverless": "^3.18.1",
+    "serverless": "^3.21.0",
     "serverless-esbuild": "^1.31.0",
     "serverless-export-env": "^2.2.0",
     "serverless-iam-roles-per-function": "^3.2.0",
