@@ -595,9 +595,21 @@ a:hover {
   margin-bottom: 10px;
 }
 
-a.edit {
+button.edit {
+  color: rgb(15, 114, 125);
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1.3;
+  font-family: museo-sans, Open Sans, Helvetica Neue, sans-serif;
   margin-top: 10px;
   margin-bottom: 25px;
+}
+
+button.edit:hover {
+  opacity: 0.7;
 }
 
 #agenda-item-form input {

@@ -17,7 +17,7 @@ export const handler = async (event: APIGatewayEvent) => {
       body: `disconnect failed: ${JSON.stringify(e, Object.getOwnPropertyNames(e))}`,
     };
   }
-  
+
   return {
     statusCode: 200,
     body: 'disconnected',

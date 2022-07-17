@@ -13,7 +13,7 @@ describe('connect', () => {
       queryStringParameters: { meetingID: undefined, email: 'test' },
       requestContext: { connectionId },
     } as unknown as APIGatewayEvent;
-    
+
     const status = await handler(params);
 
     expect(status.statusCode).toBe(500);
@@ -25,7 +25,7 @@ describe('connect', () => {
       queryStringParameters: { meetingID, email: 'test' },
       requestContext: { connectionId: undefined },
     } as unknown as APIGatewayEvent;
-    
+
     const status = await handler(params);
 
     expect(status.statusCode).toBe(500);
@@ -37,7 +37,7 @@ describe('connect', () => {
       queryStringParameters: { meetingID, email: undefined },
       requestContext: { connectionId },
     } as unknown as APIGatewayEvent;
-    
+
     const status = await handler(params);
 
     expect(status.statusCode).toBe(500);

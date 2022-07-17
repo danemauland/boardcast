@@ -1,16 +1,17 @@
-import { Context, APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 import log from '@dazn/lambda-powertools-logger';
 import { AgendaItem } from '@svc/lib/types';
 import { addAgendaItem } from '@svc/lib/addAgendaItem';
 import { isMeetingOwner } from '@svc/lib/isMeetingOwner';
 
-export const handler = async (event: APIGatewayEvent, _context: Context): Promise<APIGatewayProxyResult> => {
+export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   log.debug('received event', { event });
   try {
-    const agendaItem = JSON.parse(event.body!) as AgendaItem
-    const isOwner = await isMeetingOwner(agendaItem.meetingID, event.requestContext!.authorizer!.claims.email)
+    const agendaItem = JSON.parse(event.body!) as AgendaItem;
+    const email = event.requestContext!.authorizer!.claims.email;
+    const isOwner = await isMeetingOwner(agendaItem.meetingID, email);
 
-    if (!isOwner) return {statusCode: 403, headers: {'Content-Type': 'text/html'}, body: 'Unauthorized'}
+    if (!isOwner) return { statusCode: 403, headers: { 'Content-Type': 'text/html' }, body: 'Unauthorized' };
 
     const savedItem = await addAgendaItem(agendaItem);
 

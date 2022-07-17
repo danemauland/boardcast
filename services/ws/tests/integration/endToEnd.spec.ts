@@ -1,5 +1,7 @@
 import { randomUUID } from 'crypto';
-import { apiGWBaseURL, ddb, REGION, TableName } from '@svc/lib/config';
+import {
+  apiGWBaseURL, ddb, REGION, TableName,
+} from '@svc/lib/config';
 import { buildLambdaName } from '@tests/utils/buildLambdaName';
 import { QueryCommand, QueryCommandInput } from '@aws-sdk/lib-dynamodb';
 import WebSocket from 'ws';
@@ -29,15 +31,14 @@ describe('connect and disconnect', () => {
   };
   const websocket = new WebSocket(`${apiGWBaseURL}?meetingID=${testMessage.meetingID}&email=testUser1`);
   const websocket2 = new WebSocket(`${apiGWBaseURL}?meetingID=${testMessage.meetingID}&email=testUser2`);
-  
+
   let receivedMessage: string;
-  let receivedemail: string;
+  let receivedEmail: string;
 
   websocket2.on('message', (data: Uint8Array) => {
     const parsed = JSON.parse(textDecoder.decode(data)) as Message;
-    console.log(parsed);
     receivedMessage = parsed.text;
-    receivedemail = parsed.email;
+    receivedEmail = parsed.email;
   });
 
   describe('connect', () => {
@@ -55,11 +56,11 @@ describe('connect and disconnect', () => {
           ':email': 'testUser1',
         },
       };
-  
+
       const resp = await ddb.send(new QueryCommand(params));
-  
+
       const meetingConnection = resp.Items![0];
-  
+
       testMessage.wsConnectionID = meetingConnection.wsConnectionID;
       expect(meetingConnection.meetingID).toBe(testMessage.meetingID);
     });
@@ -69,9 +70,9 @@ describe('connect and disconnect', () => {
     it('saves the message received from the websocket to the database', async () => {
       websocket.send(JSON.stringify({ action: 'sendMessage', text: testMessage.text, email: testMessage.email }));
 
-      await new Promise(r => setTimeout(r, 5000)); // give time for websocket to be received
+      await new Promise((r) => { setTimeout(r, 5000); }); // give time for websocket to be received
 
-      const receivedMessages = (await ddb.send(new QueryCommand({
+      const returnedMessages = (await ddb.send(new QueryCommand({
         TableName,
         KeyConditionExpression: 'pk = :pk and begins_with(sk, :sk)',
         ExpressionAttributeValues: {
@@ -80,19 +81,19 @@ describe('connect and disconnect', () => {
         },
       }))).Items;
 
-      expect(receivedMessages).toHaveLength(1);
+      expect(returnedMessages).toHaveLength(1);
 
-      const receivedMessage = receivedMessages![0];
+      const returnedMessage = returnedMessages![0];
 
-      expect(receivedMessage).toStrictEqual(expect.objectContaining(testMessage));
+      expect(returnedMessage).toStrictEqual(expect.objectContaining(testMessage));
     });
   });
 
   describe('broadcastMessage', () => {
     it('broadcasts a message to all connections under that meeting after the message is saved to the database', async () => {
       expect(receivedMessage).toBe('testMessage');
-      expect(receivedemail).toBe('testUser1');
-    }); 
+      expect(receivedEmail).toBe('testUser1');
+    });
   });
 
   describe('disconnect', () => {
@@ -102,7 +103,9 @@ describe('connect and disconnect', () => {
     });
 
     it('removes the connection from the database', async () => {
-      await expect({ region: REGION, table: TableName }).not.toHaveItem(buildWSConnectionKeys(testMessage)); // testMessage contains all info needed to build respective connection keys
+      const ddbTable = { region: REGION, table: TableName };
+      // testMessage contains all info needed to build respective connection keys
+      await expect(ddbTable).not.toHaveItem(buildWSConnectionKeys(testMessage));
     });
   });
 

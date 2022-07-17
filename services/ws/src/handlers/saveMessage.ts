@@ -14,7 +14,12 @@ export const handler = async (event: APIGatewayEvent) => {
 
     if (!connection) throw new Error('connection not found');
 
-    const message = { ...receivedMessage, meetingID: connection.meetingID, timestamp: new Date().toISOString(), wsConnectionID };
+    const message = {
+      ...receivedMessage,
+      meetingID: connection.meetingID,
+      timestamp: new Date().toISOString(),
+      wsConnectionID,
+    };
     log.debug('saving message', { messageToSave: message });
     await saveMessage(message);
   } catch (e) {
@@ -24,7 +29,7 @@ export const handler = async (event: APIGatewayEvent) => {
       body: `Connection Failed: ${JSON.stringify(e, Object.getOwnPropertyNames(e))}`,
     };
   }
-  
+
   return {
     statusCode: 200,
     body: 'Connection Successful',

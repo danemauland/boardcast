@@ -9,7 +9,6 @@ const table = {
 };
 
 describe('removeConnection', () => {
-  
   it('removes the connection item and uniqueness item from the DDB Table', async () => {
     const testWSConnection = {
       meetingID: 'testRemoveMeetingID',
@@ -18,9 +17,11 @@ describe('removeConnection', () => {
     const testKeys = buildWSConnectionKeys(testWSConnection);
     const uniqKeys = buildUniquenessWSConnectionKeys(testWSConnection);
 
-    await addConnection(testWSConnection. meetingID, testWSConnection.wsConnectionID, 'testUser');
-    
-    await expect(table).toHaveItem(testKeys, { ...testKeys, ...testWSConnection, type: 'meetingConnection', email: 'testUser' });
+    await addConnection(testWSConnection.meetingID, testWSConnection.wsConnectionID, 'testUser');
+
+    await expect(table).toHaveItem(testKeys, {
+      ...testKeys, ...testWSConnection, type: 'meetingConnection', email: 'testUser',
+    });
     await expect(table).toHaveItem(uniqKeys);
 
     await removeConnection(testWSConnection.wsConnectionID);

@@ -1,27 +1,104 @@
-import { QueryCommand, QueryCommandInput } from "@aws-sdk/lib-dynamodb";
-import { AgendaItem, Attachment, DDBAgendaItem, DDBMeetingDetails, DDBMessage, Meeting, Upload } from "../types";
-import config, { ddb, s3, TableName, Bucket } from "./config";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
-import { randomUUID } from "crypto";
-import { getNewUploadURL } from "./getNewUploadURL";
-import { STSClient, AssumeRoleCommand } from "@aws-sdk/client-sts";
+import { QueryCommand, QueryCommandInput } from '@aws-sdk/lib-dynamodb';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { GetObjectCommand } from '@aws-sdk/client-s3';
+import { randomUUID } from 'crypto';
+// import { STSClient } from '@aws-sdk/client-sts';
+import { getNewUploadURL } from './getNewUploadURL';
+// import config, {
+import {
+  ddb, s3, TableName, Bucket,
+} from './config';
+import {
+  AgendaItem, Attachment, DDBAgendaItem, DDBMeetingDetails, DDBMessage, Meeting, Upload,
+} from './types';
 
-const sts = new STSClient({region: config.app.REGION})
+// const sts = new STSClient({ region: config.app.REGION });
 
-export async function getMeeting(meetingID: string, uuid: string, isOwner = false, limit?: number): Promise<Meeting> {
-  const meetingItems = await getMeetingItems(meetingID, limit)
+async function buildUpload(meetingID: string): Promise<Upload> {
+  const s3Key = `${meetingID}/${randomUUID()}`;
+  const url = await getNewUploadURL(s3Key);
 
-  const messages = meetingItems.filter(item => item.type === 'message') as DDBMessage[]
-  const agendaItems = await getAgendaItems(meetingItems)
-  const meetingDetails = meetingItems.find(item => item.type === 'meetingDetails') as DDBMeetingDetails
+  return { url, s3Key };
+}
 
-  if (!meetingDetails) throw new Error("missing meetingDetails");
-  
-  const meeting: Meeting = { meetingDetails, agendaItems: agendaItems as unknown as AgendaItem[], messages, upload: null}
-  
+async function getAgendaItems(meetingItems: { [key: string]: any }[]) {
+  const promises: Promise<any>[] = [];
+  const agendaItems = (meetingItems
+    .filter((item) => item.type === 'agendaItem') as DDBAgendaItem[])
+    .sort((itemA, itemB) => itemA.orderNum - itemB.orderNum);
+
+  agendaItems.forEach((agendaItem) => {
+    for (let i = 0; i < agendaItem.attachments.length; i++) {
+      const attachment = agendaItem.attachments[i];
+
+      promises.push(getSignedUrl(s3, new GetObjectCommand({ Key: attachment.s3Key, Bucket }))
+        .then((url) => {
+          const newAttachment: Attachment = { ...attachment, url };
+          // eslint-disable-next-line no-param-reassign
+          (agendaItem as unknown as AgendaItem).attachments[i] = newAttachment;
+        }));
+    }
+  });
+
+  await Promise.all(promises);
+
+  return agendaItems;
+}
+
+// limit param is for testing purposes to ensure query pagination works
+async function getMeetingItems(meetingID: string, limit?: number) {
+  const items: ({ [key: string]: any })[] = [];
+  let lastEvaluated;
+  const queryParams: QueryCommandInput = {
+    TableName,
+    KeyConditionExpression: 'pk = :meetingID',
+    ExpressionAttributeValues: {
+      ':meetingID': `meeting#${meetingID}`,
+    },
+  };
+
+  if (limit) queryParams.Limit = limit;
+
+  do {
+    if (lastEvaluated) {
+      queryParams.ExclusiveStartKey = lastEvaluated;
+    }
+
+    // eslint-disable-next-line no-await-in-loop
+    const results = await ddb.send(new QueryCommand(queryParams));
+
+    if (!results.Items) break;
+
+    results.Items.forEach((item) => {
+      items.push(item);
+    });
+
+    lastEvaluated = results.LastEvaluatedKey;
+  } while (lastEvaluated);
+
+  return items;
+}
+
+export async function getMeeting(
+  meetingID: string,
+  uuid: string,
+  isOwner = false,
+  limit?: number,
+): Promise<Meeting> {
+  const meetingItems = await getMeetingItems(meetingID, limit);
+
+  const messages = meetingItems.filter((item) => item.type === 'message') as DDBMessage[];
+  const agendaItems = await getAgendaItems(meetingItems);
+  const meetingDetails = meetingItems.find((item) => item.type === 'meetingDetails') as DDBMeetingDetails;
+
+  if (!meetingDetails) throw new Error('missing meetingDetails');
+
+  const meeting: Meeting = {
+    meetingDetails, agendaItems: agendaItems as unknown as AgendaItem[], messages, upload: null,
+  };
+
   if (isOwner) {
-    meeting.upload = await buildUpload(meetingID)
+    meeting.upload = await buildUpload(meetingID);
   }
 
   // const assumeRoleOutput = await sts.send(new AssumeRoleCommand({
@@ -33,66 +110,5 @@ export async function getMeeting(meetingID: string, uuid: string, isOwner = fals
 
   // meeting.credentials = assumeRoleOutput.Credentials!
 
-  console.log({meeting})
-
-  return meeting
-}
-
-async function buildUpload(meetingID: string): Promise<Upload> {
-  const s3Key = `${meetingID}/${randomUUID()}`
-  const url = await getNewUploadURL(s3Key)
-
-  return {url, s3Key}
-}
-
-async function getAgendaItems(meetingItems: { [key: string]: any }[] ) {
-  const agendaItems = (meetingItems
-    .filter(item => item.type === 'agendaItem') as DDBAgendaItem[])
-    .sort((itemA, itemB) => itemA.orderNum - itemB.orderNum)
-
-  for(let agendaItem of agendaItems) {
-    for(let i = 0; i < agendaItem.attachments.length; i++) {
-      const attachment = agendaItem.attachments[i];
-      const url = await getSignedUrl(s3, new GetObjectCommand({Key: attachment.s3Key, Bucket}));
-      const newAttachment: Attachment = {...attachment, url};
-
-
-      (agendaItem as unknown as AgendaItem).attachments[i] = newAttachment
-    }
-  }
-
-  return agendaItems
-}
-
-// limit param is for testing purposes to ensure query pagination works
-async function getMeetingItems(meetingID: string, limit?: number) {
-  const items: ({[key: string]: any})[] = [];
-  let lastEvaluated;
-  let queryParams: QueryCommandInput = {
-    TableName,
-    KeyConditionExpression: 'pk = :meetingID',
-    ExpressionAttributeValues: {
-      ':meetingID': `meeting#${meetingID}`
-    },
-  };
-
-  if (limit) queryParams.Limit = limit;
-
-  do {
-    if (lastEvaluated) {
-      queryParams.ExclusiveStartKey = lastEvaluated;
-    }
-
-    const results = await ddb.send(new QueryCommand(queryParams));
-
-    if (!results.Items) break;
-
-    for (let item of results.Items) {
-      items.push(item)
-    }
-
-    lastEvaluated = results.LastEvaluatedKey;
-  } while (lastEvaluated);
-
-  return items;
+  return meeting;
 }

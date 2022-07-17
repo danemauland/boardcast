@@ -1,7 +1,6 @@
 import { QueryCommand, QueryCommandInput } from '@aws-sdk/lib-dynamodb';
-import { ddb } from './config';
-import { TableName } from './config';
-import { Message, MeetingDetails } from '../types';
+import { ddb, TableName } from './config';
+import { MeetingDetails } from './types';
 import { buildUserPK } from './buildUserKeys';
 
 type BasicMeeting = Pick<MeetingDetails, 'timestamp' | 'name' | 'meetingID'>;
@@ -10,7 +9,7 @@ type BasicMeeting = Pick<MeetingDetails, 'timestamp' | 'name' | 'meetingID'>;
 export async function getUserMeetings(email: string, limit?: number) {
   const meetings: BasicMeeting[] = [];
   let lastEvaluated;
-  let queryParams: QueryCommandInput = {
+  const queryParams: QueryCommandInput = {
     TableName,
     KeyConditionExpression: 'pk = :email and begins_with(sk, :meeting)',
     ExpressionAttributeValues: {
@@ -32,13 +31,14 @@ export async function getUserMeetings(email: string, limit?: number) {
       queryParams.ExclusiveStartKey = lastEvaluated;
     }
 
+    // eslint-disable-next-line no-await-in-loop
     const results = await ddb.send(new QueryCommand(queryParams));
 
     if (!results.Items) break;
 
-    for (let item of results.Items) {
+    results.Items.forEach((item) => {
       meetings.push(item as BasicMeeting);
-    }
+    });
 
     lastEvaluated = results.LastEvaluatedKey;
   } while (lastEvaluated);

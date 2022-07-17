@@ -9,23 +9,10 @@ const marshaller = new Marshaller();
 export const handler = async (event: DynamoDBStreamEvent) => {
   log.debug('Received event', { event });
 
-  for (let record of event.Records) {
-    try {
-      const message = marshaller.unmarshallItem(record.dynamodb?.NewImage!) as unknown as Message;
-      await broadcastMessage(message);
-    } catch (e) {
-      log.error('error', e as Error);
-      return {
-        statusCode: 500,
-        body: `Connection Failed: ${JSON.stringify(e, Object.getOwnPropertyNames(e))}`,
-      };
-    }
+  const promises = event.Records.map(async (record) => {
+    const message = marshaller.unmarshallItem(record.dynamodb?.NewImage!) as unknown as Message;
+    return broadcastMessage(message);
+  });
 
-  }
-
-  
-  return {
-    statusCode: 200,
-    body: 'Connection Successful',
-  };
+  return Promise.all(promises);
 };

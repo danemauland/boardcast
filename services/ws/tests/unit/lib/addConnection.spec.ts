@@ -19,17 +19,18 @@ describe('addConnection', () => {
     meetingID: 'newmeetingID',
     wsConnectionID: testWSConnection.wsConnectionID,
   };
-  
+
   it('adds the connection item and uniqueness item to the DDB Table', async () => {
-    await addConnection(testWSConnection. meetingID, testWSConnection.wsConnectionID, 'testUser');
-    
-    
-    await expect(table).toHaveItem(testKeys, { ...testKeys, ...testWSConnection, type: 'meetingConnection', email: 'testUser' });
+    await addConnection(testWSConnection.meetingID, testWSConnection.wsConnectionID, 'testUser');
+
+    await expect(table).toHaveItem(testKeys, {
+      ...testKeys, ...testWSConnection, type: 'meetingConnection', email: 'testUser',
+    });
     await expect(table).toHaveItem(uniqKeys);
   });
-  
+
   it('does not add the item if the wsConnectionID is already in use', async () => {
-    const duplicateKeys = buildWSConnectionKeys(duplicateIDConnection);    
+    const duplicateKeys = buildWSConnectionKeys(duplicateIDConnection);
     const addBadConnection = addConnection(duplicateIDConnection.meetingID, duplicateIDConnection.wsConnectionID, 'testUser');
 
     await expect(addBadConnection).rejects.toThrow();

@@ -1,14 +1,13 @@
 import { QueryCommand, QueryCommandInput } from '@aws-sdk/lib-dynamodb';
-import { ddb } from './config';
+import { ddb, TableName } from './config';
 import { buildMessagePK } from './buildMessageKeys';
-import { TableName } from './config';
-import { Message, UserMeeting } from '../types';
+import { UserMeeting } from './types';
 
 // limit param is for testing purposes to ensure query pagination works
 export async function getMeetingMessages(meetingID: string, limit?: number) {
   const messages: UserMeeting[] = [];
   let lastEvaluated;
-  let queryParams: QueryCommandInput = {
+  const queryParams: QueryCommandInput = {
     TableName,
     KeyConditionExpression: 'pk = :meetingID and begins_with(sk, :message)',
     ExpressionAttributeValues: {
@@ -28,13 +27,14 @@ export async function getMeetingMessages(meetingID: string, limit?: number) {
       queryParams.ExclusiveStartKey = lastEvaluated;
     }
 
+    // eslint-disable-next-line no-await-in-loop
     const results = await ddb.send(new QueryCommand(queryParams));
 
     if (!results.Items) break;
 
-    for (let item of results.Items) {
+    results.Items.forEach((item) => {
       messages.push(item as UserMeeting);
-    }
+    });
 
     lastEvaluated = results.LastEvaluatedKey;
   } while (lastEvaluated);

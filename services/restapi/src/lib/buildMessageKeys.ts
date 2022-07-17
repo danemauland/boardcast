@@ -4,9 +4,7 @@ export const buildMessagePK = (message: Pick<Message, 'meetingID'>) => `meeting#
 
 export const buildMessageSK = ({ timestamp }: { timestamp: string }) => `message#${timestamp}`;
 
-export const buildMessageKeys = (message: Message) => {
-  return {
-    pk: buildMessagePK(message),
-    sk: buildMessageSK(message),
-  };
-};
+export const buildMessageKeys = (message: Message) => ({
+  pk: buildMessagePK(message),
+  sk: buildMessageSK(message),
+});

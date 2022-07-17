@@ -4,6 +4,21 @@ import { ddb, TableName } from './config';
 import { DDBMessage, Message } from './types';
 import { buildMessageKeys } from './buildMessageKeys';
 
+const validateMessage = (message: DDBMessage) => {
+  if (
+    !message.text
+    || !message.meetingID
+    || !message.wsConnectionID
+    || !message.timestamp
+    || !message.email
+    || !message.pk.includes(message.meetingID)
+    || !message.sk.includes(message.timestamp)
+    || message.type !== 'message'
+  ) {
+    throw new Error('invalid message');
+  }
+};
+
 export const saveMessage = async (message: Message, tries = 0): Promise<PutCommandOutput> => {
   const ddbMessage: DDBMessage = {
     ...message,
@@ -29,19 +44,4 @@ export const saveMessage = async (message: Message, tries = 0): Promise<PutComma
   }
 
   return ddb.send(new PutCommand(putParams));
-};
-
-const validateMessage = (message: DDBMessage) => {
-  if (
-    !message.text ||
-    !message.meetingID ||
-    !message.wsConnectionID ||
-    !message.timestamp ||
-    !message.email ||
-    !message.pk.includes(message.meetingID) ||
-    !message.sk.includes(message.timestamp) ||
-    message.type !== 'message'
-  ) {
-    throw new Error('invalid message');
-  }
 };

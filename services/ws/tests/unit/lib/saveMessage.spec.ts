@@ -9,7 +9,7 @@ describe('saveMessage', () => {
   let message: Message;
   const meetingID = 'testMeetingID';
   const createdMessages = [];
-  
+
   beforeEach(() => {
     const wsConnectionID = randomUUID();
     message = {
@@ -21,7 +21,8 @@ describe('saveMessage', () => {
     };
     createdMessages.push(message);
 
-    return { ...message }; // deconstructed so attempting to delete messages missing pk/sk attributes doesn't throw error
+    // deconstructed so attempting to delete messages missing pk/sk attributes doesn't throw error
+    return { ...message };
   });
   it('throws an error if the message is missing text', async () => {
     // @ts-expect-error

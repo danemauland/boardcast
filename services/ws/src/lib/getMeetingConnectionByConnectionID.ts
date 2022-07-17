@@ -14,11 +14,9 @@ export async function getMeetingConnectionByConnectionID(wsConnectionID: string)
 
   const meetingConnectionResp = await ddb.send(new QueryCommand(queryParams));
 
-  
   if (!meetingConnectionResp.Items) return null;
-  
-  const meetingConnection = meetingConnectionResp.Items[0];
 
+  const meetingConnection = meetingConnectionResp.Items[0];
 
   if (!meetingConnection) return null;
 

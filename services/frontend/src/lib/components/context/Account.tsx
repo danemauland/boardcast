@@ -1,42 +1,34 @@
-import React, { createContext } from 'react';
-import Pool from './UserPool';
+import React, { createContext, ReactNode, useMemo } from 'react';
 import { AuthenticationDetails, CognitoUser, CognitoUserSession } from 'amazon-cognito-identity-js';
+import Pool from './UserPool';
 
+type Session = CognitoUserSession & { user: CognitoUser } & { headers: { Authorization: string } };
 
-export interface AccountContext {
+export interface AccountContextInterface {
   authenticate: (Username: string, Password: string) => Promise<unknown>;
-  getSession: () => Promise<CognitoUserSession & {user: CognitoUser} & {headers: { Authorization: string }}| null>;
+  getSession: () => Promise< Session | null>;
   getEmail: () => Promise<string | null>
 }
 
+const authenticate = (Username: string, Password: string) => new Promise((resolve, reject) => {
+  const user = new CognitoUser({ Username, Pool });
 
-const authenticate = (Username: string, Password: string) => {
-  return new Promise((resolve, reject) => {
-    const user = new CognitoUser({ Username, Pool });
+  const authDetails = new AuthenticationDetails({ Username, Password });
 
-    const authDetails = new AuthenticationDetails({ Username, Password });
-
-    user.authenticateUser(authDetails, {
-      onSuccess: resolve,
-      onFailure: err => {
-        console.error(err)
-        reject(err)
-      }
-    });
+  user.authenticateUser(authDetails, {
+    onSuccess: resolve,
+    onFailure: reject,
   });
-};
+});
 
-const getSession = (): Promise<CognitoUserSession & {user: CognitoUser} & {headers: { Authorization: string }}| null>  => {
+const getSession = (): Promise<Session | null> => {
   const user = Pool.getCurrentUser();
-  console.log({user})
   return new Promise((resolve, reject) => {
     if (user) {
       user.getSession(async (err: Error | null, session: null | CognitoUserSession) => {
         if (err) {
-          console.error(err)
           reject(err);
         } else if (session) {
-          console.log({session})
           // @ts-expect-error
           const token = session.idToken.jwtToken;
           // @ts-expect-error
@@ -45,7 +37,7 @@ const getSession = (): Promise<CognitoUserSession & {user: CognitoUser} & {heade
             headers: {
               Authorization: token,
             },
-            ...session
+            ...session,
           });
         }
       });
@@ -58,14 +50,21 @@ const getSession = (): Promise<CognitoUserSession & {user: CognitoUser} & {heade
 const getEmail = async (): Promise<string | null> => {
   const session = await getSession();
   // @ts-expect-error
-  return session?.idToken.payload.email || null
+  return session?.idToken.payload.email || null;
 };
 
-export const AccountContext = createContext<AccountContext>({getEmail, getSession, authenticate});
+export const AccountContext = createContext<AccountContextInterface>({
+  getEmail,
+  getSession,
+  authenticate,
+});
 
-export const Account = (props: React.PropsWithChildren) => {
+export function Account({ children }: { children: ReactNode }) {
+  const functions = useMemo(() => ({ authenticate, getSession, getEmail }), []);
 
-  return <AccountContext.Provider value={{ authenticate, getSession, getEmail }}>
-    {props.children}
-  </AccountContext.Provider>;
-};
+  return (
+    <AccountContext.Provider value={functions}>
+      {children}
+    </AccountContext.Provider>
+  );
+}

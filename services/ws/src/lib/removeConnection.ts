@@ -5,12 +5,10 @@ import { getMeetingConnectionByConnectionID } from './getMeetingConnectionByConn
 
 export const removeConnection = async (wsConnectionID: string) => {
   const connection = await getMeetingConnectionByConnectionID(wsConnectionID);
-  
+
   if (!connection) throw new Error('missing connection');
 
-  const meetingID = connection?.meetingID;
-
-  if (!meetingID) return;
+  const meetingID = connection.meetingID;
 
   const transactWriteParams: TransactWriteCommandInput = {
     TransactItems: [

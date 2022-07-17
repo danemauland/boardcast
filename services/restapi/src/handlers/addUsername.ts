@@ -1,10 +1,8 @@
-import 'source-map-support/register';
-import { Context, APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 import log from '@dazn/lambda-powertools-logger';
 import { addUsername } from '@svc/lib/addUsername';
 
-
-export const handler = async (event: APIGatewayEvent, _context: Context): Promise<APIGatewayProxyResult> => {
+export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   log.debug('received event', { event });
   try {
     const userID = Number(event.pathParameters?.userID);

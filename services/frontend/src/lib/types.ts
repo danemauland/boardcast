@@ -1,4 +1,4 @@
-import { Credentials } from "@aws-sdk/client-sts";
+import { Credentials } from '@aws-sdk/client-sts';
 
 export interface Message {
   wsConnectionID: string,
@@ -19,7 +19,7 @@ export interface MeetingDetails {
   name: string,
   meetingID: string,
   ownerEmail: string,
-  accessTokens: {[key: string]: string}
+  accessTokens: { [key: string]: string }
 }
 
 export type UserMeeting = Pick<MeetingDetails, 'name' | 'timestamp' | 'meetingID' | 'ownerEmail'>;
@@ -77,7 +77,7 @@ export interface Upload {
 export type Stats = {
   scripts: string[]
   styles: string[]
-}
+};
 
 export interface Config {
   app: {
@@ -90,4 +90,4 @@ export interface Config {
     REGION: string,
     meetingID?: string,
   }
-};
+}
