@@ -261,6 +261,5 @@ resources:
 plugins:
 - serverless-esbuild
 - serverless-export-env
-- serverless-plugin-scripts
 - serverless-iam-roles-per-function
 - serverless-offline

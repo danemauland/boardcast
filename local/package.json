@@ -2,7 +2,9 @@
   "name": "local",
   "version": "0.0.0",
   "description": "an express.js app that forwards requests to their respective local offline serverless port",
-  "scripts": {},
+  "scripts": {
+    "start": "node index.js"
+  },
   "main": "index.js",
   "repository": {
     "type": "git",
