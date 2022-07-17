@@ -4,19 +4,22 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "concurrently --kill-others \"cd local && npm run start\" \"cd services/frontend && npm run start\" \"cd services/restapi && npm run start\"",
+    "setup": "concurrently \"npm i\" \"cd local && npm i\" \"cd services/infra && npm i\" \"cd services/frontend && npm i\" \"cd services/restapi && npm i\" \"cd services/ws && npm i\"",
     "lint": "eslint . --ext .ts,.tsx",
-    "infra:deploy": "cd ./services/infra && cross-env STAGE=${STAGE:=dev} sls deploy -s STAGE",
+    "infra:deploy": "cd ./services/infra && cross-env STAGE=${STAGE:=dev} sls deploy -s $STAGE",
     "frontend:test-unit": "cd ./services/frontend && npm run test-unit",
     "frontend:test-integration": "cd ./services/frontend && npm run test-integration",
     "frontend:deploy": "cd ./services/frontend && cross-env STAGE=${STAGE:=dev} sls deploy -s $STAGE",
     "frontend:dotenv": "cd ./services/frontend && cross-env STAGE=${STAGE:=dev} sls export-env -s $STAGE",
-    "video:deploy": "cd ./services/video && cross-env STAGE=${STAGE:=dev} sls deploy -s $STAGE",
-    "video:dotenv": "cd ./services/video && cross-env STAGE=${STAGE:=dev} sls export-env -s $STAGE",
-    "video:tsc": "cd ./services/video && tsc -w",
-    "video:test-e2e": "cd ./services/video && npm run test-e2e",
-    "video:test-unit": "cd ./services/video && npm run test-unit",
-    "video:test-integration": "cd ./services/video && npm run test-integration",
-    "video:test-all": "cd ./services/video && npm run test-all"
+    "ws:deploy": "cd ./services/ws && cross-env STAGE=${STAGE:=dev} sls deploy -s $STAGE",
+    "ws:dotenv": "cd ./services/ws && cross-env STAGE=${STAGE:=dev} sls export-env -s $STAGE",
+    "ws:tsc": "cd ./services/ws && tsc -w",
+    "ws:test-e2e": "cd ./services/ws && npm run test-e2e",
+    "ws:test-unit": "cd ./services/ws && npm run test-unit",
+    "ws:test-integration": "cd ./services/ws && npm run test-integration",
+    "ws:test-all": "cd ./services/ws && npm run test-all",
+    "restapi:deploy": "cd ./services/restapi && cross-env STAGE=${STAGE:=dev} sls deploy -s $STAGE"
   },
   "repository": {
     "type": "git",
@@ -29,6 +32,7 @@
   },
   "homepage": "",
   "devDependencies": {
+    "concurrently": "^7.2.2",
     "cross-env": "^7.0.3",
     "dotenv": "^16.0.0",
     "eslint": "^8.19.0",
@@ -38,9 +42,5 @@
     "jest": "^27.5.1",
     "ts-jest": "^27.1.4",
     "ts-loader": "^9.3.0"
-  },
-  "dependencies": {
-    "serverless-plugin-scripts": "^1.0.2",
-    "serverless-s3-sync": "^3.0.0"
   }
 }

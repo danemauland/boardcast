@@ -3,13 +3,16 @@ import ConfigContext from '../components/context/ConfigContext';
 import App from '../App';
 import html from './html';
 import * as React from 'react';
-import config from './config';
 import { StaticRouter } from 'react-router-dom/server';
-import { Stats } from './types';
+import { Stats } from '../types';
 import { Account } from '../components/context/Account';
+import getConfig from '../getConfig';
 
 export default async function render(url: string): Promise<string> {
   const stats = (await import("../../../dist/stats.json")) as unknown as Stats;
+  const config = getConfig()
+  console.log({config})
+  
   const content = renderToString(
     <ConfigContext.Provider value={config}>
       <Account>
@@ -19,7 +22,6 @@ export default async function render(url: string): Promise<string> {
       </Account>
     </ConfigContext.Provider>,
   );
-
 
   return html({ content, config, stats });
 }

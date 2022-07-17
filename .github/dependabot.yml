@@ -16,3 +16,21 @@ updates:
     schedule:
       interval: "daily"
     target-branch: 'main'
+updates:
+  - package-ecosystem: "npm" # See documentation for possible values
+    directory: "/services/frontend" # Location of package manifests
+    schedule:
+      interval: "daily"
+    target-branch: 'main'
+updates:
+  - package-ecosystem: "npm" # See documentation for possible values
+    directory: "/services/restapi" # Location of package manifests
+    schedule:
+      interval: "daily"
+    target-branch: 'main'
+updates:
+  - package-ecosystem: "npm" # See documentation for possible values
+    directory: "/services/ws" # Location of package manifests
+    schedule:
+      interval: "daily"
+    target-branch: 'main'

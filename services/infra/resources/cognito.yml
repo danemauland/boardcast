@@ -1,0 +1,37 @@
+Resources:
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: meeting-user-pool-${sls:stage}
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: service-user-pool-client-${sls:stage}
+      UserPoolId:
+        Ref: UserPool
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      GenerateSecret: false
+      SupportedIdentityProviders:
+        - COGNITO
+
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain 
+    Properties:
+      UserPoolId: 
+        Ref: UserPool
+      Domain: service-user-pool-domain-${self:custom.domainSuffix}
+  
+Outputs:
+  CogIDPArn:
+    Value: {"Fn::Join": ["", ["arn:aws:cognito-idp:", {Ref: "AWS::Region"}, ":", {Ref: "AWS::AccountId"}, ":userpool/", Ref: UserPool]]}
+  CogUserPoolID:
+    Value: !Ref UserPool
+  CogUserPoolClientID:
+    Value: !Ref UserPoolClient

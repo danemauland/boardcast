@@ -1,0 +1,265 @@
+org: danemauland
+app: boardcast
+service: boardcast-restapi
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  region: us-east-1
+  logRetentionInDays: 30
+  logs:
+    httpApi: true
+  environment:
+    STAGE: ${sls:stage}
+    REGION: ${self:provider.region}
+    SERVICE_NAME: ${self:service}
+    DDB_TABLE: ${cf:${self:custom.infraStack}.DDBTableMeeting}
+    USER_POOL: ${cf:${self:custom.infraStack}.CogUserPoolID}
+    CLIENT_ID: ${cf:${self:custom.infraStack}.CogUserPoolClientID}
+    DOMAIN_SUFFIX: ${cf:${self:custom.infraStack}.DomainSuffix}
+    S3_BUCKET: ${cf:${self:custom.infraStack}.S3BucketMeetingAttachments}
+    KINESIS_ROLE: ${cf:${self:custom.infraStack}.IAMRoleKinesisVideoArn}
+    API_GW_URL: ${self:custom.apiGWURL}
+
+custom:
+  appName: boardcast
+  backendStack: ${self:custom.appName}-backend-${sls:stage}
+  infraStack: ${self:custom.appName}-infra-${sls:stage}
+  awsAccountId: ${cf:${self:custom.infraStack}.AWSAccountId}
+  apiGWURL:
+      Fn::Join:
+          - ""
+          - - https://
+            - Ref: ApiGatewayRestApi
+            - .execute-api.
+            - Ref: AWS::Region
+            - .amazonaws.com/
+            - ${sls:stage}
+  esbuild:
+    bundle: true
+    target: es2018
+    exclude: []
+  export-env:
+    overwrite: true
+  serverless-offline:
+    useChildProcesses: true
+    noPrependStageInUrl: false
+    httpPort: 3002
+    lambdaPort: 4002
+
+package:
+  individually: true
+  patterns:
+    - '!node_modules/**'
+
+functions:
+  # =============================================================
+  # API Gateway handlers
+  # =============================================================
+
+  APIGWGetMeetingMessages:
+    handler: src/handlers/getMeetingMessages.handler
+    events:
+      - http:
+          path: /api/meeting/{meetingID}/messages
+          method: get
+          cors: true
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamoDB:Query
+      Resource:
+        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
+
+  APIGWGetUserMeetings:
+    handler: src/handlers/getUserMeetings.handler
+    events:
+      - http:
+          path: /api/usermeetings/
+          method: get
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: { Ref: APIGWAuthorizer }
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamoDB:Query
+      Resource:
+        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
+
+  APIGWInvite:
+    handler: src/handlers/invite.handler
+    events:
+      - http:
+          path: /api/meeting/{meetingID}/invite
+          method: POST
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: { Ref: APIGWAuthorizer }
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamoDB:Query
+        - dynamoDB:UpdateItem
+        - dynamoDB:GetItem
+      Resource:
+        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
+    - Effect: Allow
+      Action:
+        - ses:SendEmail
+        - ses:SendRawEmail
+      Resource:
+        - '*'
+
+  APIGWAddAgendaItem:
+    handler: src/handlers/addAgendaItem.handler
+    events:
+      - http:
+          path: /api/agendaitem
+          method: POST
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: { Ref: APIGWAuthorizer }
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamoDB:PutItem
+        - dynamoDB:GetItem
+      Resource:
+        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
+
+  APIGWDeleteAgendaItem:
+    handler: src/handlers/deleteAgendaItem.handler
+    events: 
+      - http:
+          path: /api/meeting/{meetingID}/agendaitem/{agendaItemID}
+          method: DELETE
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: { Ref: APIGWAuthorizer }
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamoDB:DeleteItem
+        - dynamoDB:GetItem
+      Resource:
+        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
+
+  APIGWGetOwnerMeeting:
+    handler: src/handlers/getOwnerMeeting.handler
+    events:
+      - http:
+          path: /api/meeting/{meetingID}
+          method: get
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: { Ref: APIGWAuthorizer }
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamoDB:Query
+        - dynamoDB:GetItem
+      Resource:
+        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
+    - Effect: Allow
+      Resource:
+        - ${cf:${self:custom.infraStack}.S3BucketMeetingAttachmentsArn}
+        - !Join
+          - ""
+          - - ${cf:${self:custom.infraStack}.S3BucketMeetingAttachmentsArn}
+            - /*
+      Action:
+        - s3:GetObject
+        - s3:ListBucket
+        - s3:GetBucketLocation
+        - s3:GetObjectVersion
+        - s3:GetLifecycleConfiguration
+        - s3:PutObject
+        - s3:*
+
+  APIGWGetAttendeeMeeting:
+    handler: src/handlers/getAttendeeMeeting.handler
+    events:
+      - http:
+          path: /api/meeting/{meetingID}/{accessToken}
+          method: get
+          cors: true
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamoDB:Query
+        - dynamoDB:GetItem
+      Resource:
+        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
+    - Effect: Allow
+      Resource:
+        - ${cf:${self:custom.infraStack}.S3BucketMeetingAttachmentsArn}
+        - !Join
+          - ""
+          - - ${cf:${self:custom.infraStack}.S3BucketMeetingAttachmentsArn}
+            - /*
+      Action:
+        - s3:GetObject
+        - s3:ListBucket
+        - s3:GetBucketLocation
+        - s3:GetObjectVersion
+        - s3:GetLifecycleConfiguration
+
+  APIGWAddUserMeeting:
+    handler: src/handlers/addUserMeeting.handler
+    events:
+      - http:
+          path: /api/usermeeting/
+          method: post
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: { Ref: APIGWAuthorizer }
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamoDB:PutItem
+      Resource:
+        - ${cf:${self:custom.infraStack}.DDBTableMeetingArn}
+
+resources:
+  Resources:
+    ApiGatewayRestApi:
+      Type: AWS::ApiGateway::RestApi
+      Properties:
+        MinimumCompressionSize: 1000
+
+    APIGWAuthorizer: 
+      Type: AWS::ApiGateway::Authorizer
+      Properties:
+        Name: ${self:service}-${sls:stage}-apigw-authorizer
+        AuthorizerResultTtlInSeconds: 10
+        IdentitySource: method.request.header.Authorization
+        RestApiId: 
+          Ref: ApiGatewayRestApi
+        Type: COGNITO_USER_POOLS
+        ProviderARNs: 
+          - ${cf:${self:custom.infraStack}.CogIDPArn}
+  
+  Outputs:
+    ApiGatewayRestApi:
+      Description: API Gateway Endpoint
+      Value:
+        Ref: ApiGatewayRestApi
+    ApiGatewayRestApiRootId:
+      Description: API Gateway Endpoint Root Resource ID
+      Value: !GetAtt ApiGatewayRestApi.RootResourceId
+
+
+plugins:
+- serverless-esbuild
+- serverless-export-env
+- serverless-iam-roles-per-function
+- serverless-offline

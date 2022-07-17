@@ -1,5 +1,4 @@
-import { Config } from './config';
-import { Stats } from './types'
+import { Config, Stats } from '../types';
 
 const html = ({
   stats,
@@ -9,7 +8,7 @@ const html = ({
 }: {
   stats: Stats
   content: string
-  config: Omit<Config, 'userID'>
+  config: Config
   css?: string
 }): string => `<!DOCTYPE html>
   <html lang="en">

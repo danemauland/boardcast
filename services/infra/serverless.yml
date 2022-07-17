@@ -1,6 +1,6 @@
 org: danemauland
-app: video
-service: video-infra
+app: boardcast
+service: boardcast-infra
 
 frameworkVersion: '3'
 
@@ -34,11 +34,15 @@ custom:
     personal: Delete
     dev: Delete
     prod: Retain
+  domainSuffix: ${self:org}-${self:service}-${sls:stage}
 
 resources:
   - ${file(resources/ddbTables.yml)}
   - ${file(resources/s3Buckets.yml)}
   - ${file(resources/iamRoles.yml)}
+  - ${file(resources/cognito.yml)}
   - Outputs:
       AWSAccountId:
         Value: !Ref 'AWS::AccountId'
+      DomainSuffix:
+        Value: ${self:custom.domainSuffix}

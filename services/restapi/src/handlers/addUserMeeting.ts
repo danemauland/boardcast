@@ -1,19 +1,30 @@
 import 'source-map-support/register';
 import { Context, APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
-import render from '../lib/server/render';
 import log from '@dazn/lambda-powertools-logger';
-import getConfig from '@svc/lib/getConfig';
+import { addUserMeeting } from '@svc/lib/addUserMeeting';
+import { randomUUID } from 'crypto';
+
 
 export const handler = async (event: APIGatewayEvent, _context: Context): Promise<APIGatewayProxyResult> => {
   log.debug('received event', { event });
   try {
-    const config = getConfig()
+    const meeting = JSON.parse(event.body!);
+    const ownerEmail = event.requestContext?.authorizer?.claims?.email
+    
+    if (!ownerEmail) throw new Error("missing owner email");
+    if (!meeting) throw new Error('missing meeting');
+    
+    const meetingID = randomUUID()
+    const meetingWithUuid = { ...meeting, meetingID, ownerEmail }
+
+    await addUserMeeting(meetingWithUuid);
+
     return {
       statusCode: 200,
       headers: {
         'Content-Type': 'text/html',
       },
-      body: await render('/' + config.app.STAGE + event.path),
+      body: meetingID,
     };
   } catch (error) {
     log.error('error', error as Error);
@@ -22,7 +33,7 @@ export const handler = async (event: APIGatewayEvent, _context: Context): Promis
       headers: {
         'Content-Type': 'text/html',
       },
-      body: `<html><body>${(error as Error).toString()}</body></html>`,
+      body: (error as Error).toString(),
     };
   }
 };

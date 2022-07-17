@@ -14,7 +14,7 @@ export default function invite({meeting, addInvitee}: {meeting: Meeting, addInvi
 
     const { headers } = (await getSession())!
 
-    const resp = await $.ajax(`${config.app.URL}/api/meeting/${meeting.meetingDetails.meetingID}/invite`, {
+    await $.ajax(`${config.app.URL}/api/meeting/${meeting.meetingDetails.meetingID}/invite`, {
       method: 'POST',
       contentType: 'application/json; charset=utf-8',
       data: email,
