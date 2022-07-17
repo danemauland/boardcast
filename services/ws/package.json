@@ -42,7 +42,7 @@
     "ws": "^8.8.0"
   },
   "dependencies": {
-    "@aws-sdk/client-apigatewaymanagementapi": "^3.121.0",
+    "@aws-sdk/client-apigatewaymanagementapi": "^3.131.0",
     "@aws-sdk/client-dynamodb": "^3.131.0",
     "@aws-sdk/client-lambda": "^3.92.0",
     "@aws-sdk/lib-dynamodb": "^3.131.0",
