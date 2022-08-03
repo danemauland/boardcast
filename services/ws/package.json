@@ -29,7 +29,7 @@
     "@types/ws": "^8.5.3",
     "aws-testing-library": "^2.1.4",
     "dotenv": "^16.0.1",
-    "esbuild": "^0.14.48",
+    "esbuild": "^0.14.53",
     "serverless": "^3.21.0",
     "serverless-esbuild": "^1.31.0",
     "serverless-export-env": "^2.2.0",
